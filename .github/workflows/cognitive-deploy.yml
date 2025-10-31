@@ -1,0 +1,64 @@
+name: Cognitive Engine CI/CD
+
+on:
+  push:
+    branches: [main]
+    paths: ['services/cognitive/**']
+  pull_request:
+    branches: [main]
+    paths: ['services/cognitive/**']
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+    
+    - name: Install dependencies
+      run: |
+        cd services/cognitive
+        pip install -r requirements.txt
+    
+    - name: Run tests
+      run: |
+        cd services/cognitive
+        python -m pytest tests/ -v
+    
+    - name: Security scan
+      run: |
+        pip install bandit
+        bandit -r services/cognitive/ -f json -o security-report.json
+
+  build-and-deploy:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Docker image
+      run: |
+        cd services/cognitive
+        docker build -t boltztrader/cognitive-engine:${{ github.sha }} .
+        docker tag boltztrader/cognitive-engine:${{ github.sha }} boltztrader/cognitive-engine:latest
+    
+    - name: Push to registry
+      run: |
+        echo ${{ secrets.DOCKER_PASSWORD }} | docker login -u ${{ secrets.DOCKER_USERNAME }} --password-stdin
+        docker push boltztrader/cognitive-engine:${{ github.sha }}
+        docker push boltztrader/cognitive-engine:latest
+    
+    - name: Deploy to Kubernetes
+      uses: azure/k8s-deploy@v1
+      with:
+        manifests: |
+          services/cognitive/k8s-deployment.yaml
+        images: |
+          boltztrader/cognitive-engine:${{ github.sha }}
+        kubectl-version: 'latest'
