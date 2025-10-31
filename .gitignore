@@ -1,0 +1,57 @@
+# Dependencies
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+build/
+dev-dist/
+*.bundle
+
+# Environment files
+.env
+.env.local
+.env.production
+services/*/.env
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Cache
+.cache/
+.parcel-cache/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+
+# Database
+*.db
+*.sqlite
+
+# Secrets
+*.pem
+*.key
+firebase.json
+
+# Mobile
+mobile/node_modules/
+mobile/.expo/
+
+# Monitoring
+monitoring/data/

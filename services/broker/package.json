@@ -1,0 +1,17 @@
+{
+  "name": "broker-service",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
+    "@supabase/supabase-js": "^2.76.1",
+    "axios": "^1.6.2",
+    "uuid": "^9.0.1"
+  }
+}

@@ -1,0 +1,21 @@
+name = "boltztrader"
+main = "src/index.js"
+compatibility_date = "2024-01-15"
+
+[env.production]
+name = "boltztrader-prod"
+routes = [
+  { pattern = "boltztrader.com/*", zone_name = "boltztrader.com" }
+]
+
+[[env.production.rules]]
+type = "transform"
+enabled = true
+
+[env.production.rules.action_parameters]
+headers = [
+  { name = "Strict-Transport-Security", value = "max-age=31536000; includeSubDomains" },
+  { name = "X-Content-Type-Options", value = "nosniff" },
+  { name = "X-Frame-Options", value = "DENY" },
+  { name = "X-XSS-Protection", value = "1; mode=block" }
+]

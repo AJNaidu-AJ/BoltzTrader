@@ -1,0 +1,41 @@
+{
+  "rules": [
+    {
+      "description": "Force HTTPS redirect",
+      "expression": "http.request.uri.scheme == \"http\"",
+      "action": "redirect",
+      "action_parameters": {
+        "from_value": {
+          "status_code": 301,
+          "target_url": {
+            "expression": "concat(\"https://\", http.request.uri.host, http.request.uri.path)"
+          }
+        }
+      }
+    },
+    {
+      "description": "API Rate Limiting",
+      "expression": "http.request.uri.path matches \"^/api/.*\"",
+      "action": "rate_limit",
+      "action_parameters": {
+        "rate_limit": {
+          "characteristics": ["ip.src"],
+          "period": 60,
+          "requests_per_period": 100,
+          "mitigation_timeout": 600
+        }
+      }
+    },
+    {
+      "description": "Cache static assets",
+      "expression": "http.request.uri.path matches \"\\.(js|css|png|jpg|jpeg|gif|ico|svg|woff|woff2)$\"",
+      "action": "cache",
+      "action_parameters": {
+        "cache": {
+          "edge_ttl": 31536000,
+          "browser_ttl": 31536000
+        }
+      }
+    }
+  ]
+}

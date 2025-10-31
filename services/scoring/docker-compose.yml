@@ -1,0 +1,43 @@
+version: '3.8'
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - redis_data:/data
+
+  scoring-service:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - SUPABASE_URL=https://qmwyanlkaafeetqkthzm.supabase.co
+      - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtd3lhbmxrYWFmZWV0cWt0aHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4NDMyNzksImV4cCI6MjA3NzQxOTI3OX0.IynEM2m8qXDTOFhQ2MpDsDmA7z34IxvjI4N-eNQP5RE
+      - REDIS_URL=redis://redis:6379/0
+      - OPENAI_API_KEY=your-openai-api-key
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+  celery-worker:
+    build: .
+    command: celery -A celery_app worker --loglevel=info
+    environment:
+      - SUPABASE_URL=https://qmwyanlkaafeetqkthzm.supabase.co
+      - SUPABASE_ANON_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtd3lhbmxrYWFmZWV0cWt0aHptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjE4NDMyNzksImV4cCI6MjA3NzQxOTI3OX0.IynEM2m8qXDTOFhQ2MpDsDmA7z34IxvjI4N-eNQP5RE
+      - REDIS_URL=redis://redis:6379/0
+      - OPENAI_API_KEY=your-openai-api-key
+    volumes:
+      - .:/app
+      - /tmp:/tmp
+    depends_on:
+      - redis
+    restart: unless-stopped
+
+volumes:
+  redis_data:
