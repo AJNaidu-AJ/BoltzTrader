@@ -22,7 +22,12 @@ export class BoltzCopilot {
   private context: ChatMessage[] = [];
 
   constructor(apiKey?: string) {
-    this.apiKey = apiKey || process.env.NEXT_PUBLIC_OPENAI_API_KEY || '';
+    this.apiKey = apiKey || import.meta.env.VITE_OPENAI_API_KEY || '';
+    
+    // Disable in development if no key provided
+    if (!this.apiKey && import.meta.env.DEV) {
+      console.warn('OpenAI API key not provided - using mock responses');
+    }
   }
 
   async processMessage(message: string): Promise<string> {

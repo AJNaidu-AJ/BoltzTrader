@@ -3,12 +3,7 @@
  * Manages WebSocket connections and live data streams
  */
 
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://your-project.supabase.co',
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'your-anon-key'
-);
+import { supabase } from './supabaseClient';
 
 export interface RealtimeData {
   type: 'cognitive_state' | 'strategy_update' | 'risk_evaluation' | 'order_execution';

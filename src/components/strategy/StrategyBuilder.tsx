@@ -173,6 +173,10 @@ export const StrategyBuilder = ({ initialStrategy }: StrategyBuilderProps) => {
     a.click();
   };
 
+  // Diagnostic logging to identify object-to-primitive error
+  console.log('Condition Groups:', conditionGroups);
+  console.log('Strategy:', strategy);
+
   return (
     <div className="space-y-6">
       <Card>
@@ -216,7 +220,7 @@ export const StrategyBuilder = ({ initialStrategy }: StrategyBuilderProps) => {
                   }
                 >
                   <SelectTrigger className="w-20">
-                    <SelectValue />
+                    <SelectValue placeholder="Operator" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="AND">AND</SelectItem>
@@ -236,11 +240,11 @@ export const StrategyBuilder = ({ initialStrategy }: StrategyBuilderProps) => {
             </div>
           </CardHeader>
           <CardContent className="space-y-3">
-            {group.conditions.map((condition) => (
-              <div key={condition.id} className="flex items-center gap-2 p-3 border rounded">
+            {Array.isArray(group.conditions) && group.conditions.map((condition, index) => (
+              <div key={condition?.id || `condition-${group.id}-${index}`} className="flex items-center gap-2 p-3 border rounded">
                 <Select
-                  value={condition.indicator}
-                  onValueChange={(value) => updateCondition(group.id, condition.id, 'indicator', value)}
+                  value={condition?.indicator || ''}
+                  onValueChange={(value) => updateCondition(group.id, condition?.id || '', 'indicator', value)}
                 >
                   <SelectTrigger className="w-48">
                     <SelectValue placeholder="Select indicator" />
@@ -255,11 +259,11 @@ export const StrategyBuilder = ({ initialStrategy }: StrategyBuilderProps) => {
                 </Select>
 
                 <Select
-                  value={condition.operator}
-                  onValueChange={(value) => updateCondition(group.id, condition.id, 'operator', value)}
+                  value={condition?.operator || '>'}
+                  onValueChange={(value) => updateCondition(group.id, condition?.id || '', 'operator', value)}
                 >
                   <SelectTrigger className="w-36">
-                    <SelectValue />
+                    <SelectValue placeholder="Select operator" />
                   </SelectTrigger>
                   <SelectContent>
                     {operators.map(op => (
@@ -272,18 +276,18 @@ export const StrategyBuilder = ({ initialStrategy }: StrategyBuilderProps) => {
 
                 <Input
                   type="number"
-                  value={condition.value}
-                  onChange={(e) => updateCondition(group.id, condition.id, 'value', parseFloat(e.target.value))}
+                  value={typeof condition?.value === 'number' ? condition.value : 0}
+                  onChange={(e) => updateCondition(group.id, condition?.id || '', 'value', parseFloat(e.target.value) || 0)}
                   className="w-24"
                   placeholder="Value"
                 />
 
                 <Select
-                  value={condition.timeframe}
-                  onValueChange={(value) => updateCondition(group.id, condition.id, 'timeframe', value)}
+                  value={condition?.timeframe || '1d'}
+                  onValueChange={(value) => updateCondition(group.id, condition?.id || '', 'timeframe', value)}
                 >
                   <SelectTrigger className="w-20">
-                    <SelectValue />
+                    <SelectValue placeholder="Timeframe" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="1m">1m</SelectItem>
@@ -297,7 +301,7 @@ export const StrategyBuilder = ({ initialStrategy }: StrategyBuilderProps) => {
                 <Button
                   variant="ghost"
                   size="sm"
-                  onClick={() => removeCondition(group.id, condition.id)}
+                  onClick={() => removeCondition(group.id, condition?.id || '')}
                 >
                   <Trash2 className="h-4 w-4" />
                 </Button>

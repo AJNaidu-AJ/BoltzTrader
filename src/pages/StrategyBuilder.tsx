@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { StrategyBuilder as Builder } from '@/components/strategy/StrategyBuilder';
+import { StrategyBuilder as StrategyBuilderComponent } from '@/components/strategy/StrategyBuilder';
 import { StrategyTemplates } from '@/components/strategy/StrategyTemplates';
 import { Strategy } from '@/services/strategyService';
 
@@ -29,7 +29,7 @@ export const StrategyBuilder = () => {
         </TabsList>
         
         <TabsContent value="builder" className="mt-6">
-          <Builder initialStrategy={selectedStrategy} />
+          <StrategyBuilderComponent initialStrategy={selectedStrategy} />
         </TabsContent>
         
         <TabsContent value="templates" className="mt-6">

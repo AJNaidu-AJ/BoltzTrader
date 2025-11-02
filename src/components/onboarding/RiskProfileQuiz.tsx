@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
@@ -138,7 +138,7 @@ export const RiskProfileQuiz = ({ onComplete }: RiskProfileQuizProps) => {
           <div className="space-y-6">
             <div className="text-center">
               <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-primary/10 mb-4">
-                <questions[currentStep].icon className="h-8 w-8 text-primary" />
+                {React.createElement(questions[currentStep].icon, { className: "h-8 w-8 text-primary" })}
               </div>
               <h3 className="text-xl font-semibold">{questions[currentStep].title}</h3>
               <p className="text-muted-foreground mt-2">{questions[currentStep].question}</p>

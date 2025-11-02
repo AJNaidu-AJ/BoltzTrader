@@ -18,6 +18,7 @@ const PageLoader = () => (
   </div>
 );
 
+// Built pages - lazy loaded to avoid errors
 const Index = lazy(() => import("./pages/Index"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Analysis = lazy(() => import("./pages/Analysis"));
@@ -33,16 +34,27 @@ const Signup = lazy(() => import("./pages/Signup"));
 const Onboarding = lazy(() => import("./pages/Onboarding"));
 const PWAInstall = lazy(() => import("./pages/PWAInstall"));
 const TradingHistory = lazy(() => import("./pages/TradingHistory"));
+// Only load pages that definitely work
 const StrategyBuilder = lazy(() => import("./pages/StrategyBuilder"));
-const Marketplace = lazy(() => import("./pages/Marketplace"));
-const GlobalMarkets = lazy(() => import("./pages/GlobalMarkets"));
-const AutonomousAgent = lazy(() => import("./pages/AutonomousAgent"));
-const Enterprise = lazy(() => import("./pages/Enterprise"));
+// Phase 1-3 pages that exist
 const CognitiveEngine = lazy(() => import("./pages/CognitiveEngine"));
 const StrategyLibrary = lazy(() => import("./pages/StrategyLibrary"));
 const RiskManagement = lazy(() => import("./pages/RiskManagement"));
-const BoltzTerminal = lazy(() => import("./pages/BoltzTerminal"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+import BoltzTerminal from "./pages/BoltzTerminal";
+import AIAgent from "./pages/AIAgent";
+
+// Fallback component for broken routes
+const ComingSoon = () => (
+  <div className="flex items-center justify-center min-h-screen">
+    <div className="text-center">
+      <h1 className="text-2xl font-bold mb-4">Coming Soon</h1>
+      <p className="text-muted-foreground mb-4">This feature is under development.</p>
+      <a href="/terminal" className="text-primary hover:underline">
+        Go to Boltz Terminal →
+      </a>
+    </div>
+  </div>
+);
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -58,31 +70,42 @@ const AppContent = () => {
   return (
     <MobileOptimized>
       <Routes>
-      <Route path="/" element={<Index />} />
+      {/* Main Terminal - Phase 4 */}
+      <Route path="/" element={<BoltzTerminal />} />
+      <Route path="/terminal" element={<BoltzTerminal />} />
+      
+      {/* Auth Routes */}
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
       <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
       <Route path="/install" element={<PWAInstall />} />
+      
+      {/* Main App Routes */}
       <Route path="/dashboard" element={<ProtectedRoute><AppLayout><Dashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/analysis" element={<ProtectedRoute><AppLayout><Analysis /></AppLayout></ProtectedRoute>} />
       <Route path="/sectors" element={<ProtectedRoute><AppLayout><Sectors /></AppLayout></ProtectedRoute>} />
       <Route path="/history" element={<ProtectedRoute><AppLayout><HistoryPage /></AppLayout></ProtectedRoute>} />
-      <Route path="/watchlist" element={<ProtectedRoute><AppLayout><Watchlist /></AppLayout></ProtectedRoute>} />
+      <Route path="/trading" element={<ProtectedRoute><AppLayout><TradingHistory /></AppLayout></ProtectedRoute>} />
+      <Route path="/strategy-builder" element={<ProtectedRoute><AppLayout><StrategyBuilder /></AppLayout></ProtectedRoute>} />
+      <Route path="/marketplace" element={<ProtectedRoute><AppLayout><ComingSoon /></AppLayout></ProtectedRoute>} />
+      <Route path="/global-markets" element={<ProtectedRoute><AppLayout><ComingSoon /></AppLayout></ProtectedRoute>} />
+      <Route path="/ai-agent" element={<ProtectedRoute><AppLayout><AIAgent /></AppLayout></ProtectedRoute>} />
+      <Route path="/enterprise" element={<ProtectedRoute><AppLayout><ComingSoon /></AppLayout></ProtectedRoute>} />
+      <Route path="/watchlist" element={<ProtectedRoute><AppLayout><ComingSoon /></AppLayout></ProtectedRoute>} />
       <Route path="/notifications" element={<ProtectedRoute><AppLayout><Notifications /></AppLayout></ProtectedRoute>} />
       <Route path="/billing" element={<ProtectedRoute><AppLayout><Billing /></AppLayout></ProtectedRoute>} />
       <Route path="/settings" element={<ProtectedRoute><AppLayout><Settings /></AppLayout></ProtectedRoute>} />
-      <Route path="/trading" element={<ProtectedRoute><AppLayout><TradingHistory /></AppLayout></ProtectedRoute>} />
-      <Route path="/strategy-builder" element={<ProtectedRoute><AppLayout><StrategyBuilder /></AppLayout></ProtectedRoute>} />
-      <Route path="/marketplace" element={<ProtectedRoute><AppLayout><Marketplace /></AppLayout></ProtectedRoute>} />
-      <Route path="/global-markets" element={<ProtectedRoute><AppLayout><GlobalMarkets /></AppLayout></ProtectedRoute>} />
-      <Route path="/ai-agent" element={<ProtectedRoute><AppLayout><AutonomousAgent /></AppLayout></ProtectedRoute>} />
+      
+      {/* Phase 1-3 Routes */}
       <Route path="/cognitive" element={<ProtectedRoute><AppLayout><CognitiveEngine /></AppLayout></ProtectedRoute>} />
       <Route path="/strategy-library" element={<ProtectedRoute><AppLayout><StrategyLibrary /></AppLayout></ProtectedRoute>} />
       <Route path="/risk-management" element={<ProtectedRoute><AppLayout><RiskManagement /></AppLayout></ProtectedRoute>} />
-      <Route path="/terminal" element={<ProtectedRoute><BoltzTerminal /></ProtectedRoute>} />
-      <Route path="/enterprise" element={<ProtectedRoute><AppLayout><Enterprise /></AppLayout></ProtectedRoute>} />
-      <Route path="/admin" element={<ProtectedRoute><AppLayout><Admin /></AppLayout></ProtectedRoute>} />
-      <Route path="*" element={<NotFound />} />
+      
+      {/* Admin Terminal */}
+      <Route path="/admin" element={<ProtectedRoute><AppLayout><BoltzTerminal /></AppLayout></ProtectedRoute>} />
+      
+      {/* Fallback for other routes */}
+      <Route path="*" element={<ComingSoon />} />
       </Routes>
     </MobileOptimized>
   );
