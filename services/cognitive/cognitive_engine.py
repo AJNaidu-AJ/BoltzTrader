@@ -201,58 +201,77 @@ class CognitiveEngine:
         return state
     
     async def strategy_node(self, state: CognitiveState) -> CognitiveState:
-        """Decision & Synthesis Core Node"""
-        # Synthesize all signals
-        rsi = state.indicators.get("rsi", 50)
-        sentiment = state.sentiment_score
-        breakouts = state.breakout_signals
-        
-        strategy_decision = {
-            "action": "HOLD",
-            "confidence": 0.5,
-            "reasoning": [],
-            "risk_level": "MEDIUM"
-        }
-        
-        # Decision logic
-        if "OVERSOLD_REVERSAL" in breakouts and sentiment > 0.3:
-            strategy_decision.update({
-                "action": "BUY",
-                "confidence": 0.8,
-                "reasoning": ["Oversold reversal with positive sentiment"],
-                "risk_level": "LOW"
-            })
-        elif "OVERBOUGHT_BREAKOUT" in breakouts and sentiment < -0.3:
-            strategy_decision.update({
-                "action": "SELL",
-                "confidence": 0.7,
-                "reasoning": ["Overbought with negative sentiment"],
-                "risk_level": "MEDIUM"
-            })
-        elif rsi > 80:
-            strategy_decision.update({
-                "action": "SELL",
-                "confidence": 0.6,
-                "reasoning": ["Extremely overbought conditions"],
-                "risk_level": "HIGH"
-            })
-        elif rsi < 20:
-            strategy_decision.update({
-                "action": "BUY",
-                "confidence": 0.6,
-                "reasoning": ["Extremely oversold conditions"],
-                "risk_level": "HIGH"
-            })
+        """Decision & Synthesis Core Node - Now uses Strategy Library"""
+        try:
+            # Call Strategy Engine API
+            import aiohttp
+            strategy_request = {
+                "symbol": state.symbol,
+                "market_data": state.market_data,
+                "indicators": state.indicators,
+                "sentiment": state.sentiment_score,
+                "breakouts": state.breakout_signals,
+                "fusion_method": "weighted_average"
+            }
             
+            async with aiohttp.ClientSession() as session:
+                async with session.post(
+                    "http://localhost:8003/evaluate",
+                    json=strategy_request
+                ) as response:
+                    if response.status == 200:
+                        strategy_response = await response.json()
+                        fused_signal = strategy_response["fused_signal"]
+                        
+                        strategy_decision = {
+                            "action": fused_signal["action"],
+                            "confidence": fused_signal["confidence"],
+                            "reasoning": fused_signal["reasoning"],
+                            "risk_level": fused_signal["risk_level"],
+                            "target_price": fused_signal.get("target_price"),
+                            "stop_loss": fused_signal.get("stop_loss"),
+                            "strategy_count": len(strategy_response["individual_signals"])
+                        }
+                    else:
+                        raise Exception(f"Strategy API error: {response.status}")
+                        
+        except Exception as e:
+            logger.warning(f"Strategy Library unavailable, using fallback: {e}")
+            # Fallback to simple logic
+            rsi = state.indicators.get("rsi", 50)
+            sentiment = state.sentiment_score
+            
+            if rsi > 70 and sentiment > 0.3:
+                strategy_decision = {
+                    "action": "SELL", "confidence": 0.6, 
+                    "reasoning": ["Fallback: Overbought + positive sentiment"], 
+                    "risk_level": "MEDIUM"
+                }
+            elif rsi < 30 and sentiment < -0.3:
+                strategy_decision = {
+                    "action": "BUY", "confidence": 0.6,
+                    "reasoning": ["Fallback: Oversold + negative sentiment"],
+                    "risk_level": "MEDIUM"
+                }
+            else:
+                strategy_decision = {
+                    "action": "HOLD", "confidence": 0.5,
+                    "reasoning": ["Fallback: No clear signal"],
+                    "risk_level": "MEDIUM"
+                }
+        
         state.strategy_decision = strategy_decision
         
         # Publish strategy
-        self.redis_client.publish(f"strategy:{state.symbol}", json.dumps(strategy_decision))
+        try:
+            self.redis_client.publish(f"strategy:{state.symbol}", json.dumps(strategy_decision))
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
         
         return state
     
     async def execution_node(self, state: CognitiveState) -> CognitiveState:
-        """Trade Placement & Routing Node"""
+        """Trade Placement & Routing Node - Now with Risk Firewall"""
         strategy = state.strategy_decision
         
         execution_result = {
@@ -261,22 +280,100 @@ class CognitiveEngine:
             "action": strategy.get("action", "HOLD"),
             "quantity": 0,
             "price": state.market_data.get("price", 0),
-            "timestamp": datetime.now().isoformat()
+            "timestamp": datetime.now().isoformat(),
+            "risk_assessment": None
         }
         
-        # Execute only if confidence > 0.6
+        # Only proceed if we have a valid trading signal
         if strategy.get("confidence", 0) > 0.6 and strategy.get("action") != "HOLD":
-            execution_result.update({
-                "status": "EXECUTED",
-                "quantity": 100,  # Fixed quantity for demo
-            })
+            try:
+                # Call Risk Engine for pre-trade evaluation
+                import aiohttp
+                
+                risk_request = {
+                    "trade_request": {
+                        "symbol": state.symbol,
+                        "action": strategy["action"],
+                        "quantity": 100,  # Base quantity
+                        "price": state.market_data.get("price", 0),
+                        "strategy_id": strategy.get("strategy_id", "unknown"),
+                        "confidence": strategy["confidence"],
+                        "risk_level": strategy.get("risk_level", "MEDIUM")
+                    },
+                    "portfolio_state": {
+                        "total_value": 100000.0,  # Mock portfolio
+                        "cash_available": 50000.0,
+                        "positions": {},
+                        "daily_pnl": 0.0,
+                        "max_drawdown": 0.05,
+                        "volatility": 0.15
+                    },
+                    "market_data": {
+                        "vix": 20.0,
+                        "sector": "Technology",
+                        "volatility": state.indicators.get("volatility", 20)
+                    }
+                }
+                
+                async with aiohttp.ClientSession() as session:
+                    async with session.post(
+                        "http://localhost:8004/evaluate",
+                        json=risk_request
+                    ) as response:
+                        if response.status == 200:
+                            risk_response = await response.json()
+                            risk_assessment = risk_response["assessment"]
+                            
+                            # Apply risk firewall decision
+                            if risk_assessment["action"] == "ALLOW":
+                                final_quantity = risk_assessment.get("adjustments", {}).get("quantity", 100)
+                                execution_result.update({
+                                    "status": "EXECUTED",
+                                    "quantity": final_quantity,
+                                    "risk_assessment": risk_assessment
+                                })
+                            elif risk_assessment["action"] == "RESIZE":
+                                final_quantity = risk_assessment["adjustments"]["quantity"]
+                                execution_result.update({
+                                    "status": "EXECUTED",
+                                    "quantity": final_quantity,
+                                    "risk_assessment": risk_assessment
+                                })
+                            elif risk_assessment["action"] == "DELAY":
+                                execution_result.update({
+                                    "status": "DELAYED",
+                                    "quantity": 0,
+                                    "risk_assessment": risk_assessment,
+                                    "delay_reason": risk_assessment["reasoning"]
+                                })
+                            else:  # BLOCK
+                                execution_result.update({
+                                    "status": "BLOCKED",
+                                    "quantity": 0,
+                                    "risk_assessment": risk_assessment,
+                                    "block_reason": risk_assessment["reasoning"]
+                                })
+                        else:
+                            raise Exception(f"Risk API error: {response.status}")
+                            
+            except Exception as e:
+                logger.warning(f"Risk Engine unavailable, using fallback: {e}")
+                # Fallback execution without risk checks
+                execution_result.update({
+                    "status": "EXECUTED",
+                    "quantity": 50,  # Conservative fallback quantity
+                    "risk_assessment": {"action": "FALLBACK", "reasoning": ["Risk engine unavailable"]}
+                })
         else:
             execution_result["status"] = "SKIPPED"
             
         state.execution_result = execution_result
         
         # Publish execution
-        self.redis_client.publish(f"execution:{state.symbol}", json.dumps(execution_result))
+        try:
+            self.redis_client.publish(f"execution:{state.symbol}", json.dumps(execution_result))
+        except Exception as e:
+            sentry_sdk.capture_exception(e)
         
         return state
     

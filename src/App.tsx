@@ -39,6 +39,8 @@ const GlobalMarkets = lazy(() => import("./pages/GlobalMarkets"));
 const AutonomousAgent = lazy(() => import("./pages/AutonomousAgent"));
 const Enterprise = lazy(() => import("./pages/Enterprise"));
 const CognitiveEngine = lazy(() => import("./pages/CognitiveEngine"));
+const StrategyLibrary = lazy(() => import("./pages/StrategyLibrary"));
+const RiskManagement = lazy(() => import("./pages/RiskManagement"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient({
@@ -74,6 +76,8 @@ const AppContent = () => {
       <Route path="/global-markets" element={<ProtectedRoute><AppLayout><GlobalMarkets /></AppLayout></ProtectedRoute>} />
       <Route path="/ai-agent" element={<ProtectedRoute><AppLayout><AutonomousAgent /></AppLayout></ProtectedRoute>} />
       <Route path="/cognitive" element={<ProtectedRoute><AppLayout><CognitiveEngine /></AppLayout></ProtectedRoute>} />
+      <Route path="/strategy-library" element={<ProtectedRoute><AppLayout><StrategyLibrary /></AppLayout></ProtectedRoute>} />
+      <Route path="/risk-management" element={<ProtectedRoute><AppLayout><RiskManagement /></AppLayout></ProtectedRoute>} />
       <Route path="/enterprise" element={<ProtectedRoute><AppLayout><Enterprise /></AppLayout></ProtectedRoute>} />
       <Route path="/admin" element={<ProtectedRoute><AppLayout><Admin /></AppLayout></ProtectedRoute>} />
       <Route path="*" element={<NotFound />} />
