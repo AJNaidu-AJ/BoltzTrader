@@ -1,74 +1,164 @@
-# Welcome to your Lovable project
+# BoltzTrader
 
-## Project info
+🚀 **Advanced AI-Powered Trading Platform** with real-time analytics, strategy building, and intelligent risk management.
 
-**URL**: https://lovable.dev/projects/6f56eb97-6195-49e0-8d45-cd644a2e164f
+## 🎯 Overview
 
-## How can I edit this code?
+BoltzTrader is a comprehensive trading platform that combines cutting-edge AI technology with professional-grade trading tools. Built for both novice and experienced traders, it offers real-time market analysis, automated strategy execution, and intelligent risk management.
 
-There are several ways of editing your application.
+## ✨ Key Features
 
-**Use Lovable**
+### 🧠 AI-Powered Trading
+- **BoltzCopilot**: Intelligent AI assistant for trading insights
+- **LangGraph Visualization**: Neural network cognitive engine mapping
+- **Real-time Market Analysis**: Live data processing and pattern recognition
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/6f56eb97-6195-49e0-8d45-cd644a2e164f) and start prompting.
+### 📊 Professional Trading Tools
+- **Strategy Builder**: Visual drag-and-drop strategy creation
+- **Risk Management**: Advanced position sizing and stop-loss automation
+- **Portfolio Analytics**: Comprehensive performance tracking
+- **Backtesting Engine**: Historical strategy validation
 
-Changes made via Lovable will be committed automatically to this repo.
+### 🎛️ Terminal Interface
+- **Multi-Panel Dashboard**: Real-time market data, orders, and analytics
+- **Matrix-Style UI**: Professional trading terminal aesthetics
+- **Live Order Management**: Execute, modify, and track trades in real-time
+- **Performance Monitoring**: Track P&L, drawdown, and risk metrics
 
-**Use your preferred IDE**
+## 🛠️ Technology Stack
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+- **Frontend**: React 18, TypeScript, Vite
+- **UI Framework**: shadcn/ui, Tailwind CSS
+- **State Management**: React Hooks, Context API
+- **Real-time Data**: Supabase Realtime, WebSocket connections
+- **AI Integration**: OpenAI GPT-4, LangGraph
+- **Authentication**: Supabase Auth
+- **Database**: Supabase PostgreSQL
+- **Deployment**: Vercel, AWS
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## 🚀 Quick Start
 
-Follow these steps:
+### Prerequisites
+- Node.js 18+ and npm
+- Git
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
+### Installation
 
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
+```bash
+# Clone the repository
+git clone https://github.com/AJNaidu-AJ/BoltzTrader.git
 
-# Step 3: Install the necessary dependencies.
-npm i
+# Navigate to project directory
+cd BoltzTrader
 
-# Step 4: Start the development server with auto-reloading and an instant preview.
+# Install dependencies
+npm install
+
+# Start development server
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+### Environment Setup
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+Create a `.env.local` file:
 
-**Use GitHub Codespaces**
+```env
+VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_OPENAI_API_KEY=your_openai_api_key
+```
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+## 📁 Project Structure
 
-## What technologies are used for this project?
+```
+src/
+├── components/          # Reusable UI components
+│   ├── charts/         # Trading charts and visualizations
+│   ├── strategy/       # Strategy builder components
+│   └── ui/            # Base UI components (shadcn/ui)
+├── pages/              # Application pages
+├── lib/                # Utilities and configurations
+├── hooks/              # Custom React hooks
+├── services/           # API and business logic
+└── types/              # TypeScript type definitions
+```
 
-This project is built with:
+## 🎮 Usage
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+### 1. Authentication
+- Sign up/Login with email or social providers
+- Complete risk profile assessment
+- Access personalized dashboard
 
-## How can I deploy this project?
+### 2. Strategy Building
+- Navigate to Strategy Builder
+- Create conditions using visual interface
+- Backtest strategies with historical data
+- Deploy live strategies
 
-Simply open [Lovable](https://lovable.dev/projects/6f56eb97-6195-49e0-8d45-cd644a2e164f) and click on Share -> Publish.
+### 3. Trading Terminal
+- Access real-time market data
+- Execute trades with advanced order types
+- Monitor positions and P&L
+- Use AI copilot for insights
 
-## Can I connect a custom domain to my Lovable project?
+## 🔧 Development
 
-Yes, you can!
+### Available Scripts
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+```bash
+npm run dev          # Start development server
+npm run build        # Build for production
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+npm run type-check   # TypeScript type checking
+```
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/features/custom-domain#custom-domain)
-# BoltzTrader
+### Code Quality
+- ESLint + Prettier for code formatting
+- TypeScript for type safety
+- Husky for pre-commit hooks
+- Conventional commits
+
+## 🚀 Deployment
+
+### Vercel (Recommended)
+```bash
+npm run build
+vercel --prod
+```
+
+### Manual Deployment
+```bash
+npm run build
+# Deploy dist/ folder to your hosting provider
+```
+
+## 🤝 Contributing
+
+1. Fork the repository
+2. Create feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit changes (`git commit -m 'Add amazing feature'`)
+4. Push to branch (`git push origin feature/amazing-feature`)
+5. Open Pull Request
+
+## 📄 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 🙏 Acknowledgments
+
+- OpenAI for GPT-4 integration
+- Supabase for backend infrastructure
+- shadcn/ui for component library
+- Vercel for deployment platform
+
+## 📞 Support
+
+- 📧 Email: support@boltztrader.com
+- 🐛 Issues: [GitHub Issues](https://github.com/AJNaidu-AJ/BoltzTrader/issues)
+- 📖 Documentation: [Wiki](https://github.com/AJNaidu-AJ/BoltzTrader/wiki)
+
+---
+
+**Built with ❤️ by the BoltzTrader Team**
