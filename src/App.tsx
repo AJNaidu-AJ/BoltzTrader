@@ -44,6 +44,7 @@ const RiskManagement = lazy(() => import("./pages/RiskManagement"));
 import BoltzTerminal from "./pages/BoltzTerminal";
 import AIAgent from "./pages/AIAgent";
 const Learning = lazy(() => import("./pages/Learning").then(m => ({ default: m.Learning })));
+const Governance = lazy(() => import("./pages/Governance"));
 
 // Fallback component for broken routes
 const ComingSoon = () => (
@@ -103,6 +104,9 @@ const AppContent = () => {
       <Route path="/cognitive" element={<ProtectedRoute><AppLayout><CognitiveEngine /></AppLayout></ProtectedRoute>} />
       <Route path="/strategy-library" element={<ProtectedRoute><AppLayout><StrategyLibrary /></AppLayout></ProtectedRoute>} />
       <Route path="/risk-management" element={<ProtectedRoute><AppLayout><RiskManagement /></AppLayout></ProtectedRoute>} />
+      
+      {/* Phase 7 - Governance & Compliance */}
+      <Route path="/governance" element={<ProtectedRoute><AppLayout><Governance /></AppLayout></ProtectedRoute>} />
       
       {/* Admin Terminal */}
       <Route path="/admin" element={<ProtectedRoute><AppLayout><BoltzTerminal /></AppLayout></ProtectedRoute>} />
