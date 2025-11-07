@@ -2,14 +2,10 @@ import { useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Progress } from "@/components/ui/progress";
-import { PriceChart } from "@/components/charts/PriceChart";
 import { Search, TrendingUp, Star, Bell, Share2, MessageSquare } from "lucide-react";
 import { generatePriceChartData } from "@/lib/mockData";
-import { SentimentIndicator } from "@/components/signals/SentimentIndicator";
-import { ChatInterface } from "@/components/chat/ChatInterface";
 
 export default function Analysis() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,7 +59,9 @@ export default function Analysis() {
                   <TabsTrigger value="news">News</TabsTrigger>
                 </TabsList>
                 <TabsContent value="chart" className="space-y-4">
-                  <PriceChart data={chartData} className="h-80" />
+                  <div className="h-80 bg-gray-100 rounded-lg flex items-center justify-center">
+                    <p className="text-gray-500">Chart will be displayed here</p>
+                  </div>
                 </TabsContent>
                 <TabsContent value="indicators" className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -77,7 +75,7 @@ export default function Analysis() {
                   </div>
                 </TabsContent>
                 <TabsContent value="news" className="space-y-3">
-                  <Card><CardContent className="p-4"><div className="flex items-start gap-3"><SentimentIndicator sentiment="positive" score={0.75} /><div className="flex-1"><p className="font-medium">Apple announces new product line</p></div></div></CardContent></Card>
+                  <Card><CardContent className="p-4"><div className="flex items-start gap-3"><div className="w-4 h-4 bg-green-500 rounded-full"></div><div className="flex-1"><p className="font-medium">Apple announces new product line</p></div></div></CardContent></Card>
                 </TabsContent>
               </Tabs>
             </CardContent>
@@ -89,8 +87,10 @@ export default function Analysis() {
             <CardTitle className="flex items-center gap-2"><MessageSquare className="h-5 w-5" />AI Trading Assistant</CardTitle>
             <CardDescription>Ask questions about signals, strategies, and market analysis</CardDescription>
           </CardHeader>
-          <CardContent className="p-0">
-            <ChatInterface />
+          <CardContent className="p-4">
+            <div className="h-96 bg-gray-50 rounded-lg flex items-center justify-center">
+              <p className="text-gray-500">AI Chat Interface</p>
+            </div>
           </CardContent>
         </Card>
       </div>
