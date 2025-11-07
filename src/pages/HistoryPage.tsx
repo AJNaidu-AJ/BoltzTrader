@@ -108,7 +108,7 @@ export default function HistoryPage() {
 
   const CustomPerformanceChart = ({ className }: any) => (
     <div className={className}>
-      <div className="w-full h-full bg-white border rounded-lg p-4">
+      <div className="w-full h-full bg-white border rounded-lg p-4 overflow-hidden">
         <div className="flex justify-between items-center mb-6">
           <div>
             <h3 className="font-semibold text-lg">Performance Chart</h3>
@@ -142,8 +142,8 @@ export default function HistoryPage() {
           </div>
         </div>
         
-        <div className="h-64 relative">
-          <svg className="w-full h-full" viewBox="0 0 800 300">
+        <div className="h-64 relative overflow-hidden">
+          <svg className="w-full h-64" viewBox="0 0 800 300" style={{maxHeight: '256px'}}>
             <defs>
               <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2" />
@@ -344,18 +344,20 @@ export default function HistoryPage() {
       </div>
 
       {/* Performance Chart */}
-      <Card>
+      <Card className="mb-8">
         <CardHeader>
           <CardTitle>Cumulative Performance</CardTitle>
           <CardDescription>Signal accuracy and returns over time</CardDescription>
         </CardHeader>
-        <CardContent>
-          <CustomPerformanceChart className="h-96" />
+        <CardContent className="pb-8">
+          <div className="h-96 overflow-hidden">
+            <CustomPerformanceChart className="h-full" />
+          </div>
         </CardContent>
       </Card>
 
       {/* Signal History Table */}
-      <Card>
+      <Card className="mt-8">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
