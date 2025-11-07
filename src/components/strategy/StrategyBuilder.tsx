@@ -21,6 +21,11 @@ interface StrategyBuilderProps {
 
 export const StrategyBuilder = ({ initialStrategy }: StrategyBuilderProps) => {
   const { toast } = useToast();
+  
+  // Debug logging for development
+  if (process.env.NODE_ENV !== 'production') {
+    console.debug('🔍 StrategyBuilder props', { initialStrategy });
+  }
   const [strategy, setStrategy] = useState<Partial<Strategy>>(
     initialStrategy || {
       name: '',

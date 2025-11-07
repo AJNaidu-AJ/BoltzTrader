@@ -11,6 +11,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/layout/ProtectedRoute";
 import { MobileOptimized } from "./components/mobile/MobileOptimized";
 import { FeedbackWidget } from "./components/feedback/FeedbackWidget";
+import { ErrorBoundary } from "./components/ErrorBoundary";
 
 const PageLoader = () => (
   <div className="flex items-center justify-center min-h-screen">
@@ -114,21 +115,23 @@ const AppContent = () => {
 };
 
 const App = () => (
-  <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AuthProvider>
-          <Suspense fallback={<PageLoader />}>
-            <AppContent />
-            <PWAInstallPrompt />
-            <FeedbackWidget />
-          </Suspense>
-        </AuthProvider>
-      </BrowserRouter>
-    </TooltipProvider>
-  </QueryClientProvider>
+  <ErrorBoundary>
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AuthProvider>
+            <Suspense fallback={<PageLoader />}>
+              <AppContent />
+              <PWAInstallPrompt />
+              <FeedbackWidget />
+            </Suspense>
+          </AuthProvider>
+        </BrowserRouter>
+      </TooltipProvider>
+    </QueryClientProvider>
+  </ErrorBoundary>
 );
 
 export default App;

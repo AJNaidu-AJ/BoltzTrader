@@ -4,9 +4,12 @@ import { StrategyBuilder as StrategyBuilderComponent } from '@/components/strate
 import { StrategyTemplates } from '@/components/strategy/StrategyTemplates';
 import { Strategy } from '@/services/strategyService';
 
-export const StrategyBuilder = () => {
+const StrategyBuilder = () => {
   const [selectedStrategy, setSelectedStrategy] = useState<Strategy | null>(null);
   const [activeTab, setActiveTab] = useState('builder');
+
+  // Defensive check to prevent null tab errors
+  if (!activeTab) setActiveTab('builder');
 
   const handleSelectTemplate = (strategy: Strategy) => {
     setSelectedStrategy(strategy);
@@ -22,7 +25,7 @@ export const StrategyBuilder = () => {
         </p>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
+      <Tabs value={activeTab || 'builder'} onValueChange={setActiveTab}>
         <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="builder">Strategy Builder</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
@@ -39,3 +42,5 @@ export const StrategyBuilder = () => {
     </div>
   );
 };
+
+export default StrategyBuilder;

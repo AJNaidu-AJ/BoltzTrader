@@ -6,13 +6,25 @@ import {
   DashboardRisk, 
   DashboardOrders, 
   DashboardMonitor, 
-  DashboardCopilot, 
   DashboardLangGraph, 
   DashboardLearning 
 } from '@/components/dashboard/DashboardPanels';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export default function Dashboard() {
   const [activeTab, setActiveTab] = useState('overview');
+
+  // Defensive check to prevent null tab errors
+  if (!activeTab) setActiveTab('overview');
+
+  // Ensure all imports are loaded before rendering
+  if (!DashboardOverview || !DashboardStrategies || !DashboardRisk) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -20,52 +32,49 @@ export default function Dashboard() {
         <h1 className="text-3xl font-bold tracking-tight">BoltzTrader Dashboard</h1>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab}>
-        <TabsList className="grid w-full grid-cols-4 lg:grid-cols-8">
+      <Tabs value={activeTab || 'overview'} onValueChange={setActiveTab}>
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="strategies">Strategies</TabsTrigger>
-          <TabsTrigger value="risk">Risk</TabsTrigger>
           <TabsTrigger value="orders">Orders</TabsTrigger>
-          <TabsTrigger value="monitor">Monitor</TabsTrigger>
-          <TabsTrigger value="copilot">Copilot</TabsTrigger>
           <TabsTrigger value="langgraph">LangGraph</TabsTrigger>
           <TabsTrigger value="learning">Learning</TabsTrigger>
         </TabsList>
         
         <TabsContent value="overview" className="space-y-6">
-          <DashboardOverview />
+          <ErrorBoundary>
+            <DashboardOverview />
+          </ErrorBoundary>
           <div className="grid gap-6 md:grid-cols-2">
-            <DashboardStrategies />
-            <DashboardRisk />
+            <ErrorBoundary>
+              <DashboardStrategies />
+            </ErrorBoundary>
+            <ErrorBoundary>
+              <DashboardRisk />
+            </ErrorBoundary>
+          </div>
+          <div className="grid gap-6 md:grid-cols-1">
+            <ErrorBoundary>
+              <DashboardMonitor />
+            </ErrorBoundary>
           </div>
         </TabsContent>
         
-        <TabsContent value="strategies">
-          <DashboardStrategies />
-        </TabsContent>
-        
-        <TabsContent value="risk">
-          <DashboardRisk />
-        </TabsContent>
-        
         <TabsContent value="orders">
-          <DashboardOrders />
-        </TabsContent>
-        
-        <TabsContent value="monitor">
-          <DashboardMonitor />
-        </TabsContent>
-        
-        <TabsContent value="copilot">
-          <DashboardCopilot />
+          <ErrorBoundary>
+            <DashboardOrders />
+          </ErrorBoundary>
         </TabsContent>
         
         <TabsContent value="langgraph">
-          <DashboardLangGraph />
+          <ErrorBoundary>
+            <DashboardLangGraph />
+          </ErrorBoundary>
         </TabsContent>
         
         <TabsContent value="learning">
-          <DashboardLearning />
+          <ErrorBoundary>
+            <DashboardLearning />
+          </ErrorBoundary>
         </TabsContent>
       </Tabs>
     </div>

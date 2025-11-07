@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: boltztrader
+  labels:
+    app: boltztrader
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: boltztrader
+  template:
+    metadata:
+      labels:
+        app: boltztrader
+    spec:
+      containers:
+        - name: boltztrader
+          image: ghcr.io/ajnaidu-aj/boltztrader:latest
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: boltztrader-secrets
+          resources:
+            requests:
+              memory: "128Mi"
+              cpu: "100m"
+            limits:
+              memory: "256Mi"
+              cpu: "200m"

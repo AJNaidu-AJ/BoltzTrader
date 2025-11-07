@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: boltztrader-service
+  labels:
+    app: boltztrader
+spec:
+  type: LoadBalancer
+  selector:
+    app: boltztrader
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP

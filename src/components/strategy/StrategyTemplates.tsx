@@ -15,6 +15,9 @@ export const StrategyTemplates = ({ onSelectTemplate }: StrategyTemplatesProps) 
   const [templates, setTemplates] = useState<Strategy[]>([]);
   const [loading, setLoading] = useState(true);
 
+  // Defensive check to ensure templates is always an array
+  const safeTemplates = Array.isArray(templates) ? templates : [];
+
   useEffect(() => {
     loadTemplates();
   }, []);
@@ -63,14 +66,14 @@ export const StrategyTemplates = ({ onSelectTemplate }: StrategyTemplatesProps) 
       </CardHeader>
       <CardContent>
         <div className="grid gap-4 md:grid-cols-2">
-          {templates.map((template) => (
-            <Card key={template.id} className="border-2 hover:border-primary/50 transition-colors">
+          {safeTemplates.map((template) => (
+            <Card key={template?.id || Math.random()} className="border-2 hover:border-primary/50 transition-colors">
               <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="font-medium">{template.name}</h4>
+                    <h4 className="font-medium">{template?.name || 'Untitled Strategy'}</h4>
                     <p className="text-sm text-muted-foreground mt-1">
-                      {template.description}
+                      {template?.description || 'No description available'}
                     </p>
                   </div>
                   <Badge variant="secondary" className="text-xs">
@@ -83,9 +86,9 @@ export const StrategyTemplates = ({ onSelectTemplate }: StrategyTemplatesProps) 
                   <div>
                     <p className="text-xs font-medium text-muted-foreground mb-2">Conditions:</p>
                     <div className="space-y-1">
-                      {template.conditions.map((condition, index) => (
+                      {Array.isArray(template?.conditions) && template.conditions.map((condition, index) => (
                         <div key={index} className="text-xs bg-muted p-2 rounded">
-                          {condition.indicator.toUpperCase()} {condition.operator} {condition.value}
+                          {(condition?.indicator || 'Unknown').toUpperCase()} {condition?.operator || '>'} {condition?.value || 0}
                         </div>
                       ))}
                     </div>
@@ -114,7 +117,7 @@ export const StrategyTemplates = ({ onSelectTemplate }: StrategyTemplatesProps) 
           ))}
         </div>
         
-        {templates.length === 0 && (
+        {safeTemplates.length === 0 && (
           <div className="text-center text-muted-foreground py-8">
             No templates available
           </div>
