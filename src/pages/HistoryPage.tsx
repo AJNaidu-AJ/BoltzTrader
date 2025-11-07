@@ -90,7 +90,7 @@ export default function HistoryPage() {
 
   const CustomPerformanceChart = ({ data, className }: any) => (
     <div className={className}>
-      <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-4 flex flex-col">
+      <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-4 flex flex-col relative z-0">
         <div className="flex justify-between items-center mb-4">
           <h3 className="font-semibold">Cumulative Performance</h3>
           <div className="flex gap-2">
@@ -99,8 +99,8 @@ export default function HistoryPage() {
             <Button size="sm" variant={timeRange === "90d" ? "default" : "outline"} onClick={() => setTimeRange("90d")}>90D</Button>
           </div>
         </div>
-        <div className="flex-1 relative">
-          <svg className="w-full h-full" viewBox="0 0 500 250">
+        <div className="flex-1 relative overflow-hidden">
+          <svg className="w-full h-full" viewBox="0 0 500 200" style={{maxHeight: '200px'}}>
             <defs>
               <linearGradient id="performanceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
@@ -108,25 +108,25 @@ export default function HistoryPage() {
               </linearGradient>
             </defs>
             {/* Grid lines */}
-            {[0, 1, 2, 3, 4, 5].map(i => (
+            {[0, 1, 2, 3, 4].map(i => (
               <line key={i} x1="0" y1={i * 40} x2="500" y2={i * 40} stroke="#e5e7eb" strokeWidth="1" />
             ))}
             {/* Performance line */}
             <path
-              d={`M 0 ${125 + Math.sin(0) * 40} ${data.slice(0, 25).map((_, i) => 
-                `L ${i * 20} ${125 + Math.sin(i * 0.2) * 30 + (i * 2)}`
+              d={`M 0 ${100 + Math.sin(0) * 30} ${data.slice(0, 25).map((_, i) => 
+                `L ${i * 20} ${100 + Math.sin(i * 0.2) * 25 + (i * 1.5)}`
               ).join(' ')}`}
               fill="url(#performanceGradient)"
               stroke="#10b981"
-              strokeWidth="3"
+              strokeWidth="2"
             />
             {/* Data points */}
             {data.slice(0, 25).map((_, i) => (
               <circle
                 key={i}
                 cx={i * 20}
-                cy={125 + Math.sin(i * 0.2) * 30 + (i * 2)}
-                r="3"
+                cy={100 + Math.sin(i * 0.2) * 25 + (i * 1.5)}
+                r="2"
                 fill="#10b981"
               />
             ))}
@@ -246,7 +246,9 @@ export default function HistoryPage() {
           <CardDescription>Signal accuracy and returns over time</CardDescription>
         </CardHeader>
         <CardContent>
-          <CustomPerformanceChart data={performanceData} className="h-80" />
+          <div className="h-80 relative">
+            <CustomPerformanceChart data={performanceData} className="h-full" />
+          </div>
         </CardContent>
       </Card>
 
