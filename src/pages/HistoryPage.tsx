@@ -6,10 +6,13 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PerformanceChart } from "@/components/performance/PerformanceChart";
+
 import { useState } from "react";
+import "@/styles/performance-chart.css";
 
 export default function HistoryPage() {
   const [filterSymbol, setFilterSymbol] = useState("");
+  const [timeRange, setTimeRange] = useState("30d");
 
   // Mock signal history
   const signalHistory = [

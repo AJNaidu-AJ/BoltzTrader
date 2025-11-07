@@ -1,0 +1,28 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: ai-feedback-sync
+  namespace: boltztrader
+spec:
+  schedule: "0 2 * * *"  # every day at 2 AM UTC
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          containers:
+            - name: ai-feedback-sync
+              image: boltztrader/app:latest
+              command: ["node", "services/ai-feedback/cronSync.js"]
+              env:
+                - name: DATABASE_URL
+                  valueFrom:
+                    secretKeyRef:
+                      name: boltz-secrets
+                      key: DATABASE_URL
+                - name: OPENAI_API_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: boltz-secrets
+                      key: OPENAI_API_KEY
+          restartPolicy: OnFailure
+          backoffLimit: 3

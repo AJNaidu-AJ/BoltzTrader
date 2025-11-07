@@ -1,29 +1,45 @@
-// Mock data generator for performance service
-export async function getPerformanceData(range: '7D' | '30D' | '90D') {
-  // Simulate API call delay
-  await new Promise(resolve => setTimeout(resolve, 500));
-  
+import { detectRegion } from '@/utils/geoRegion';
+import { getBenchmarkSymbol, computeCum } from '@/utils/benchmark';
+
+type PerformancePoint = {
+  date: string;
+  user_cum: number;
+  benchmark_cum?: number;
+};
+
+export async function getPerformanceData(range: '7D' | '30D' | '90D'): Promise<PerformancePoint[]> {
   const days = range === '7D' ? 7 : range === '30D' ? 30 : 90;
   
-  // Generate mock data with realistic performance metrics
-  const data = Array.from({ length: days }, (_, i) => {
+  // Generate mock daily returns
+  const dailyReturns = Array.from({ length: days }, () => {
+    return (Math.random() - 0.5) * 0.04; // -2% to +2% daily
+  });
+  
+  // Compute cumulative multipliers
+  const userCum = computeCum(dailyReturns);
+  
+  // Generate benchmark data
+  const region = await detectRegion();
+  const symbol = getBenchmarkSymbol(region);
+  const benchmarkReturns = Array.from({ length: days }, () => {
+    const baseReturn = symbol === 'BTC' ? 0.01 : symbol === 'SP500' ? 0.008 : 0.006;
+    return baseReturn + (Math.random() - 0.5) * 0.02;
+  });
+  const benchmarkCum = computeCum(benchmarkReturns);
+  
+  // Create aligned time series
+  return Array.from({ length: days }, (_, i) => {
     const date = new Date(Date.now() - (days - 1 - i) * 24 * 60 * 60 * 1000);
-    const baseAccuracy = 85;
-    const trend = i * 0.5; // Slight upward trend
-    const noise = (Math.random() - 0.5) * 10; // Random variation
-    
     return {
-      date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-      signal_accuracy: Math.max(75, Math.min(95, baseAccuracy + trend + noise)),
-      total_return: Math.max(-10, Math.min(50, (i * 2) + (Math.random() - 0.3) * 15)),
-      total_signals: Math.floor(Math.random() * 50) + 20
+      date: date.toISOString().split('T')[0],
+      user_cum: userCum[i],
+      benchmark_cum: benchmarkCum[i]
     };
   });
+}
 
-  return data.map((item: any) => ({
-    date: item.date,
-    accuracy: Number(item.signal_accuracy ?? 0),
-    return: Number(item.total_return ?? 0),
-    signals: Number(item.total_signals ?? 0)
-  }));
+export async function getBenchmarkData(range: '7D' | '30D' | '90D') {
+  const region = await detectRegion();
+  const symbol = getBenchmarkSymbol(region);
+  return { symbol, data: [] };
 }

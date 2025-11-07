@@ -1,0 +1,15 @@
+.performance-chart .recharts-wrapper { 
+  overflow: visible; 
+}
+
+.performance-chart .recharts-xAxis text { 
+  font-size: 12px; 
+}
+
+.performance-chart .recharts-yAxis text { 
+  font-size: 11px; 
+}
+
+.performance-chart {
+  min-height: 320px;
+}

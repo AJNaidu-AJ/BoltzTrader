@@ -1,186 +1,179 @@
-import { useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
+import {
+  ResponsiveContainer, AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, Legend
+} from 'recharts';
+import { format, parseISO } from 'date-fns';
 import { getPerformanceData } from '@/services/performanceService';
+import { useRegion } from '@/hooks/useRegion';
+import { detectBenchmarkByRegion, shouldShowBenchmark, calculateAlpha } from '@/utils/benchmarkDetector';
+import { recordFeedback } from '@/services/ai-feedback/feedbackEngine';
+import { syncFeedbackToAI } from '@/services/ai-feedback/trainingAdapter';
+import { Brain } from 'lucide-react';
 
-export const PerformanceChart = () => {
+type Point = {
+  date: string;
+  user_cum: number;
+  benchmark_cum?: number;
+};
+
+export function PerformanceChart() {
   const [range, setRange] = useState<'7D' | '30D' | '90D'>('30D');
-  const [data, setData] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState<Point[]>([]);
+  const region = useRegion();
+  const benchmark = detectBenchmarkByRegion(region);
+  const showBenchmark = shouldShowBenchmark(region);
+  const [alpha, setAlpha] = useState<string | null>(null);
 
   useEffect(() => {
-    setLoading(true);
-    getPerformanceData(range)
-      .then((d) => setData(d))
-      .catch((error) => {
-        console.error('Performance data fetch error:', error);
-        setData([]);
-      })
-      .finally(() => setLoading(false));
-  }, [range]);
+    const loadData = async () => {
+      const perfData = await getPerformanceData(range);
+      setData(perfData);
+      
+      // Calculate alpha and record feedback
+      if (perfData.length > 0) {
+        const last = perfData[perfData.length - 1];
+        if (last.benchmark_cum) {
+          const alphaValue = calculateAlpha(last.user_cum, last.benchmark_cum);
+          setAlpha(alphaValue);
+          
+          // Record AI feedback for learning
+          await recordFeedback(
+            'STRAT-DEFAULT', 
+            last.user_cum, 
+            last.benchmark_cum, 
+            'user-123', 
+            benchmark
+          );
+          
+          // Trigger AI learning sync (demo)
+          if (Math.random() < 0.1) { // 10% chance to trigger sync
+            await syncFeedbackToAI();
+          }
+        }
+      }
+    };
+    
+    loadData();
+  }, [range, benchmark]);
 
-  if (loading) {
-    return (
-      <div className="w-full h-[320px] flex items-center justify-center">
-        <p className="text-gray-400 text-center">Loading performance data...</p>
-      </div>
-    );
-  }
+  // Compute domain with padding
+  const { yMin, yMax } = useMemo(() => {
+    let min = Infinity, max = -Infinity;
+    data.forEach(d => {
+      if (isFinite(d.user_cum)) { min = Math.min(min, d.user_cum); max = Math.max(max, d.user_cum); }
+      if (showBenchmark && isFinite(d.benchmark_cum)) { min = Math.min(min, d.benchmark_cum); max = Math.max(max, d.benchmark_cum); }
+    });
+    if (!isFinite(min) || !isFinite(max)) { min = 0.9; max = 1.1; }
+    const padding = (max - min) * 0.08 || 0.05;
+    return { yMin: min - padding, yMax: max + padding };
+  }, [data, showBenchmark]);
 
-  if (!data.length) {
-    return (
-      <div className="w-full h-[320px] flex items-center justify-center">
-        <p className="text-gray-400 text-center">No performance data available.</p>
-      </div>
-    );
-  }
+  const tooltipFormatter = (value: any, name: string) => {
+    const percent = (Number(value) - 1) * 100;
+    const label = name === 'user_cum' ? 'AI Performance' : `Benchmark (${benchmark})`;
+    return [`${percent.toFixed(2)}%`, label];
+  };
 
-  const maxValue = Math.max(...data.map(d => d.accuracy));
-  const minValue = Math.min(...data.map(d => d.accuracy));
-  const valueRange = maxValue - minValue;
-  const padding = valueRange * 0.1;
-  const chartMin = Math.max(75, minValue - padding);
-  const chartMax = Math.min(100, maxValue + padding);
-  const chartRange = chartMax - chartMin;
+  const xTickFormatter = (tick: string) => {
+    try { return format(parseISO(tick), 'MMM d'); } catch { return tick; }
+  };
+
+  const shouldShowDots = data.length <= 10;
 
   return (
-    <div className="w-full h-[400px] p-4 bg-white border rounded-lg">
-      <div className="flex justify-between items-center mb-6">
-        <div>
-          <h3 className="font-semibold text-lg">Performance Chart</h3>
-          <p className="text-sm text-gray-500">Signal accuracy over time</p>
-        </div>
-        <div className="flex gap-1">
-          {(['7D', '30D', '90D'] as const).map((r) => (
+    <div className="w-full h-[400px] p-4 performance-chart">
+      <div className="flex justify-between mb-4">
+        <div className="flex gap-2">
+          {['7D', '30D', '90D'].map((r) => (
             <button
               key={r}
-              onClick={() => setRange(r)}
-              className={`px-3 py-1 text-sm rounded-md border transition-colors ${
-                range === r 
-                  ? 'bg-blue-600 text-white border-blue-600' 
-                  : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+              onClick={() => setRange(r as any)}
+              className={`px-3 py-1 text-sm rounded-md border ${
+                range === r ? 'bg-blue-600 text-white' : 'bg-white text-gray-600 hover:bg-gray-100'
               }`}
             >
               {r}
             </button>
           ))}
         </div>
+
+        {showBenchmark && (
+          <label className="flex items-center gap-1 text-sm text-gray-600">
+            <input type="checkbox" checked readOnly />
+            Show Benchmark ({benchmark})
+          </label>
+        )}
       </div>
 
-      <div className="h-64 relative">
-        <svg className="w-full h-full" viewBox="0 0 800 300">
+      <ResponsiveContainer width="100%" height={360}>
+        <AreaChart data={data} margin={{ top: 20, right: 40, left: 20, bottom: 10 }}>
           <defs>
-            <linearGradient id="performanceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-              <stop offset="0%" stopColor="#3B82F6" stopOpacity="0.3" />
-              <stop offset="100%" stopColor="#3B82F6" stopOpacity="0" />
+            <linearGradient id="userGrad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="5%" stopColor="#2b8cff" stopOpacity={0.35}/>
+              <stop offset="95%" stopColor="#2b8cff" stopOpacity={0}/>
+            </linearGradient>
+            <linearGradient id="benchGrad" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="5%" stopColor="#a855f7" stopOpacity={0.18}/>
+              <stop offset="95%" stopColor="#a855f7" stopOpacity={0}/>
             </linearGradient>
           </defs>
+
+          <CartesianGrid strokeDasharray="3 3" vertical={false} />
+          <XAxis dataKey="date" tickFormatter={xTickFormatter} minTickGap={20} />
+          <YAxis
+            domain={[yMin, yMax]}
+            tickFormatter={(v) => `${((v as number) - 1) * 100 | 0}%`}
+            width={85}
+          />
+          <Tooltip 
+            formatter={tooltipFormatter} 
+            labelFormatter={(l) => {
+              try { return format(parseISO(String(l)), 'PPP'); } catch { return String(l); }
+            }} 
+          />
+          <Legend />
           
-          {/* Grid lines */}
-          {[0, 1, 2, 3, 4, 5].map(i => (
-            <line 
-              key={`grid-${i}`} 
-              x1="60" 
-              y1={50 + i * 40} 
-              x2="740" 
-              y2={50 + i * 40} 
-              stroke="#f3f4f6" 
-              strokeWidth="1" 
+          {/* Benchmark: secondary area */}
+          {showBenchmark && (
+            <Area
+              type="monotone"
+              dataKey="benchmark_cum"
+              name={`Benchmark (${benchmark})`}
+              stroke="#a855f7"
+              fill="url(#benchGrad)"
+              strokeWidth={2}
+              dot={shouldShowDots}
+              activeDot={{ r: 3 }}
+              isAnimationActive={true}
             />
-          ))}
+          )}
           
-          {/* Y-axis labels */}
-          {[0, 1, 2, 3, 4, 5].map(i => {
-            const value = chartMax - (i * chartRange / 5);
-            return (
-              <text 
-                key={`y-label-${i}`} 
-                x="50" 
-                y={55 + i * 40} 
-                textAnchor="end" 
-                className="text-xs fill-gray-500"
-              >
-                {value.toFixed(1)}%
-              </text>
-            );
-          })}
-          
-          {/* Chart area */}
-          <path
-            d={`M 60 250 L 60 ${250 - ((data[0].accuracy - chartMin) / chartRange) * 200} ${data.map((point, i) => {
-              const x = 60 + (i * (680 / (data.length - 1)));
-              const y = 250 - ((point.accuracy - chartMin) / chartRange) * 200;
-              return `L ${x} ${y}`;
-            }).join(' ')} L 740 250 Z`}
-            fill="url(#performanceGradient)"
+          {/* User: main area */}
+          <Area
+            type="monotone"
+            dataKey="user_cum"
+            name="AI Performance"
+            stroke="#2b8cff"
+            fill="url(#userGrad)"
+            strokeWidth={2.5}
+            dot={shouldShowDots}
+            activeDot={{ r: 4 }}
+            isAnimationActive={true}
           />
-          
-          {/* Chart line */}
-          <path
-            d={`M 60 ${250 - ((data[0].accuracy - chartMin) / chartRange) * 200} ${data.map((point, i) => {
-              const x = 60 + (i * (680 / (data.length - 1)));
-              const y = 250 - ((point.accuracy - chartMin) / chartRange) * 200;
-              return `L ${x} ${y}`;
-            }).join(' ')}`}
-            fill="none"
-            stroke="#3B82F6"
-            strokeWidth="2"
-          />
-          
-          {/* Data points */}
-          {data.map((point, i) => {
-            const x = 60 + (i * (680 / (data.length - 1)));
-            const y = 250 - ((point.accuracy - chartMin) / chartRange) * 200;
-            return (
-              <circle
-                key={`point-${i}`}
-                cx={x}
-                cy={y}
-                r="3"
-                fill="#3B82F6"
-                className="hover:r-4 cursor-pointer"
-              />
-            );
-          })}
-          
-          {/* X-axis labels */}
-          {data.filter((_, i) => i % Math.ceil(data.length / 6) === 0).map((point, i) => {
-            const originalIndex = i * Math.ceil(data.length / 6);
-            const x = 60 + (originalIndex * (680 / (data.length - 1)));
-            return (
-              <text 
-                key={`x-label-${i}`} 
-                x={x} 
-                y="275" 
-                textAnchor="middle" 
-                className="text-xs fill-gray-500"
-              >
-                {point.date}
-              </text>
-            );
-          })}
-        </svg>
-      </div>
-      
-      {/* Performance metrics */}
-      <div className="grid grid-cols-3 gap-6 mt-4 pt-4 border-t bg-gray-50 rounded-lg p-4">
-        <div className="text-center">
-          <div className="text-2xl font-bold text-green-600">
-            +{((data[data.length - 1].return - data[0].return)).toFixed(1)}%
+        </AreaChart>
+      </ResponsiveContainer>
+
+      {alpha !== null && (
+        <div className="flex justify-between items-center mt-3 text-sm text-gray-600">
+          <div>
+            <strong>Alpha:</strong> {alpha.startsWith('-') ? alpha : `+${alpha}`}% vs {benchmark}
           </div>
-          <div className="text-sm text-gray-600 font-medium">Total Return</div>
-        </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-blue-600">
-            {data.reduce((sum, d) => sum + d.signals, 0)}
+          <div className="flex items-center gap-1 text-xs">
+            <Brain className="h-3 w-3 text-blue-500" />
+            <span>AI Learning Active</span>
           </div>
-          <div className="text-sm text-gray-600 font-medium">Total Signals</div>
         </div>
-        <div className="text-center">
-          <div className="text-2xl font-bold text-purple-600">
-            {(data.reduce((sum, d) => sum + d.accuracy, 0) / data.length).toFixed(1)}%
-          </div>
-          <div className="text-sm text-gray-600 font-medium">Avg Accuracy</div>
-        </div>
-      </div>
+      )}
     </div>
   );
-};
+}
