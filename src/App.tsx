@@ -45,6 +45,8 @@ import BoltzTerminal from "./pages/BoltzTerminal";
 import AIAgent from "./pages/AIAgent";
 const Learning = lazy(() => import("./pages/Learning").then(m => ({ default: m.Learning })));
 const Governance = lazy(() => import("./pages/Governance"));
+const MarketplaceExplore = lazy(() => import("./pages/marketplace/Explore"));
+const CreatorDashboard = lazy(() => import("./pages/marketplace/CreatorDashboard"));
 
 // Fallback component for broken routes
 const ComingSoon = () => (
@@ -90,7 +92,8 @@ const AppContent = () => {
       <Route path="/history" element={<ProtectedRoute><AppLayout><HistoryPage /></AppLayout></ProtectedRoute>} />
       <Route path="/trading" element={<ProtectedRoute><AppLayout><TradingHistory /></AppLayout></ProtectedRoute>} />
       <Route path="/strategy-builder" element={<ProtectedRoute><AppLayout><StrategyBuilder /></AppLayout></ProtectedRoute>} />
-      <Route path="/marketplace" element={<ProtectedRoute><AppLayout><ComingSoon /></AppLayout></ProtectedRoute>} />
+      <Route path="/marketplace" element={<ProtectedRoute><AppLayout><MarketplaceExplore /></AppLayout></ProtectedRoute>} />
+      <Route path="/marketplace/creator" element={<ProtectedRoute><AppLayout><CreatorDashboard /></AppLayout></ProtectedRoute>} />
       <Route path="/global-markets" element={<ProtectedRoute><AppLayout><ComingSoon /></AppLayout></ProtectedRoute>} />
       <Route path="/ai-agent" element={<ProtectedRoute><AppLayout><AIAgent /></AppLayout></ProtectedRoute>} />
       <Route path="/learning" element={<ProtectedRoute><AppLayout><Learning /></AppLayout></ProtectedRoute>} />

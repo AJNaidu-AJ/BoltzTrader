@@ -1,264 +1,198 @@
-import { supabase } from '@/integrations/supabase/client';
+import { supabase } from '@/lib/supabaseClient'
+import { logAudit } from '@/utils/auditLogger'
 
-export interface MarketplaceStrategy {
-  id: string;
-  name: string;
-  description: string;
-  price: number;
-  creator_id: string;
-  creator_name: string;
-  creator_avatar?: string;
-  rating: number;
-  review_count: number;
-  download_count: number;
-  is_purchased: boolean;
-  performance_metrics: {
-    total_return: number;
-    sharpe_ratio: number;
-    max_drawdown: number;
-    win_rate: number;
-  };
-  tags: string[];
-  status: 'pending' | 'approved' | 'rejected';
-  created_at: string;
+export interface StrategyListing {
+  id?: string
+  strategy_id: string
+  creator_id: string
+  title: string
+  description: string
+  price: number
+  currency: string
+  tags: string[]
+  is_public: boolean
+  is_paid: boolean
 }
 
-export interface StrategyReview {
-  id: string;
-  strategy_id: string;
-  user_id: string;
-  user_name: string;
-  rating: number;
-  comment: string;
-  created_at: string;
+export interface Purchase {
+  id?: string
+  listing_id: string
+  buyer_id: string
+  amount: number
+  currency: string
+  payment_provider: string
+  status: 'pending' | 'completed' | 'refunded' | 'failed'
 }
 
-export interface PurchaseResult {
-  success: boolean;
-  payment_url?: string;
-  error?: string;
-}
-
-class MarketplaceService {
-  async getMarketplaceStrategies(filters: {
-    search?: string;
-    sort?: string;
-    filter?: string;
-  }): Promise<MarketplaceStrategy[]> {
-    try {
-      let query = supabase
-        .from('marketplace_strategies')
-        .select(`
-          *,
-          creator:profiles(full_name, avatar_url),
-          purchases:strategy_purchases(user_id)
-        `)
-        .eq('status', 'approved');
-
-      if (filters.search) {
-        query = query.or(`name.ilike.%${filters.search}%,description.ilike.%${filters.search}%`);
-      }
-
-      if (filters.filter === 'free') {
-        query = query.eq('price', 0);
-      } else if (filters.filter === 'paid') {
-        query = query.gt('price', 0);
-      }
-
-      switch (filters.sort) {
-        case 'downloads':
-          query = query.order('download_count', { ascending: false });
-          break;
-        case 'newest':
-          query = query.order('created_at', { ascending: false });
-          break;
-        case 'price_low':
-          query = query.order('price', { ascending: true });
-          break;
-        case 'price_high':
-          query = query.order('price', { ascending: false });
-          break;
-        default:
-          query = query.order('rating', { ascending: false });
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      const { data: { user } } = await supabase.auth.getUser();
-      
-      return (data || []).map(strategy => ({
-        ...strategy,
-        creator_name: strategy.creator?.full_name || 'Unknown',
-        creator_avatar: strategy.creator?.avatar_url,
-        is_purchased: user ? strategy.purchases.some((p: any) => p.user_id === user.id) : false
-      }));
-    } catch (error) {
-      console.error('Error fetching marketplace strategies:', error);
-      return this.getMockStrategies();
-    }
-  }
-
-  async publishStrategy(strategyId: string, price: number, description: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { error } = await supabase
-      .from('marketplace_strategies')
-      .insert({
-        strategy_id: strategyId,
-        creator_id: user.id,
-        price,
-        description,
-        status: 'pending'
-      });
-
-    if (error) throw error;
-  }
-
-  async purchaseStrategy(strategyId: string): Promise<PurchaseResult> {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // Get strategy details
-      const { data: strategy, error: strategyError } = await supabase
-        .from('marketplace_strategies')
-        .select('*')
-        .eq('id', strategyId)
-        .single();
-
-      if (strategyError) throw strategyError;
-
-      if (strategy.price === 0) {
-        // Free strategy - direct purchase
-        const { error } = await supabase
-          .from('strategy_purchases')
-          .insert({
-            strategy_id: strategyId,
-            user_id: user.id,
-            amount: 0,
-            status: 'completed'
-          });
-
-        if (error) throw error;
-
-        // Update download count
-        await this.incrementDownloadCount(strategyId);
-
-        return { success: true };
-      } else {
-        // Paid strategy - create payment session
-        const paymentUrl = await this.createPaymentSession(strategyId, strategy.price);
-        return { success: true, payment_url: paymentUrl };
-      }
-    } catch (error) {
-      return { success: false, error: error instanceof Error ? error.message : 'Purchase failed' };
-    }
-  }
-
-  async createPaymentSession(strategyId: string, amount: number): Promise<string> {
-    // Mock payment URL - integrate with Stripe/Razorpay
-    return `https://checkout.stripe.com/pay/cs_test_${strategyId}_${amount}`;
-  }
-
-  async addReview(strategyId: string, rating: number, comment: string): Promise<void> {
-    const { data: { user } } = await supabase.auth.getUser();
-    if (!user) throw new Error('User not authenticated');
-
-    const { error } = await supabase
-      .from('strategy_reviews')
-      .insert({
-        strategy_id: strategyId,
-        user_id: user.id,
-        rating,
-        comment
-      });
-
-    if (error) throw error;
-
-    // Update strategy rating
-    await this.updateStrategyRating(strategyId);
-  }
-
-  async getStrategyReviews(strategyId: string): Promise<StrategyReview[]> {
+export const marketplaceService = {
+  // Listings
+  async createListing(listing: StrategyListing): Promise<StrategyListing> {
     const { data, error } = await supabase
-      .from('strategy_reviews')
-      .select(`
-        *,
-        user:profiles(full_name)
-      `)
+      .from('strategy_marketplace')
+      .insert([listing])
+      .select()
+      .single()
+
+    if (error) throw error
+
+    await logAudit('marketplace_listing', data.id, 'CREATE', listing.creator_id, listing)
+    return data
+  },
+
+  async getListings(filters?: {
+    search?: string
+    tags?: string[]
+    creator_id?: string
+    page?: number
+    limit?: number
+  }): Promise<StrategyListing[]> {
+    let query = supabase
+      .from('strategy_marketplace')
+      .select('*')
+      .eq('status', 'active')
+      .eq('is_public', true)
+
+    if (filters?.search) {
+      query = query.ilike('title', `%${filters.search}%`)
+    }
+
+    if (filters?.creator_id) {
+      query = query.eq('creator_id', filters.creator_id)
+    }
+
+    if (filters?.tags && filters.tags.length > 0) {
+      query = query.overlaps('tags', filters.tags)
+    }
+
+    const page = filters?.page || 1
+    const limit = filters?.limit || 20
+    const offset = (page - 1) * limit
+
+    const { data, error } = await query
+      .order('total_sales', { ascending: false })
+      .range(offset, offset + limit - 1)
+
+    if (error) throw error
+    return data || []
+  },
+
+  async getListing(id: string): Promise<StrategyListing | null> {
+    const { data, error } = await supabase
+      .from('strategy_marketplace')
+      .select('*')
+      .eq('id', id)
+      .single()
+
+    if (error) return null
+    return data
+  },
+
+  // Purchases
+  async createPurchase(purchase: Omit<Purchase, 'id'>): Promise<Purchase> {
+    const { data, error } = await supabase
+      .from('strategy_purchases')
+      .insert([purchase])
+      .select()
+      .single()
+
+    if (error) throw error
+
+    await logAudit('marketplace_purchase', data.id, 'CREATE', purchase.buyer_id, purchase)
+    return data
+  },
+
+  async updatePurchaseStatus(purchaseId: string, status: Purchase['status']): Promise<void> {
+    const { error } = await supabase
+      .from('strategy_purchases')
+      .update({ status, updated_at: new Date().toISOString() })
+      .eq('id', purchaseId)
+
+    if (error) throw error
+
+    if (status === 'completed') {
+      await this.grantAccess(purchaseId)
+    }
+
+    await logAudit('marketplace_purchase', purchaseId, 'UPDATE_STATUS', 'system', { status })
+  },
+
+  async grantAccess(purchaseId: string): Promise<void> {
+    // Get purchase details
+    const { data: purchase } = await supabase
+      .from('strategy_purchases')
+      .select('*, strategy_marketplace(strategy_id)')
+      .eq('id', purchaseId)
+      .single()
+
+    if (!purchase) return
+
+    // Grant access
+    const { error } = await supabase
+      .from('user_strategy_access')
+      .insert([{
+        user_id: purchase.buyer_id,
+        strategy_id: purchase.strategy_marketplace.strategy_id,
+        listing_id: purchase.listing_id,
+        access_type: 'purchased'
+      }])
+
+    if (error) throw error
+
+    // Increment sales count
+    await supabase
+      .from('strategy_marketplace')
+      .update({ 
+        total_sales: supabase.raw('total_sales + 1')
+      })
+      .eq('id', purchase.listing_id)
+
+    await logAudit('marketplace_access', purchase.buyer_id, 'GRANT', 'system', {
+      strategy_id: purchase.strategy_marketplace.strategy_id,
+      purchase_id: purchaseId
+    })
+  },
+
+  // User access
+  async hasAccess(userId: string, strategyId: string): Promise<boolean> {
+    const { data } = await supabase
+      .from('user_strategy_access')
+      .select('id')
+      .eq('user_id', userId)
       .eq('strategy_id', strategyId)
-      .order('created_at', { ascending: false });
+      .single()
 
-    if (error) throw error;
+    return !!data
+  },
 
-    return (data || []).map(review => ({
-      ...review,
-      user_name: review.user?.full_name || 'Anonymous'
-    }));
-  }
+  // Creator payouts
+  async requestPayout(creatorId: string): Promise<void> {
+    // Calculate pending earnings
+    const { data: purchases } = await supabase
+      .from('strategy_purchases')
+      .select('amount, strategy_marketplace!inner(creator_id)')
+      .eq('status', 'completed')
+      .eq('strategy_marketplace.creator_id', creatorId)
 
-  private async incrementDownloadCount(strategyId: string): Promise<void> {
-    const { error } = await supabase.rpc('increment_download_count', {
-      strategy_id: strategyId
-    });
-    if (error) console.error('Error incrementing download count:', error);
-  }
+    if (!purchases || purchases.length === 0) return
 
-  private async updateStrategyRating(strategyId: string): Promise<void> {
-    const { error } = await supabase.rpc('update_strategy_rating', {
-      strategy_id: strategyId
-    });
-    if (error) console.error('Error updating strategy rating:', error);
-  }
+    const totalAmount = purchases.reduce((sum, p) => sum + p.amount, 0)
+    const platformFee = totalAmount * 0.3 // 30% platform fee
+    const payoutAmount = totalAmount - platformFee
 
-  private getMockStrategies(): MarketplaceStrategy[] {
-    return [
-      {
-        id: '1',
-        name: 'RSI Momentum Pro',
-        description: 'Advanced RSI strategy with momentum filters',
-        price: 29.99,
-        creator_id: 'creator1',
-        creator_name: 'John Trader',
-        rating: 4.5,
-        review_count: 23,
-        download_count: 156,
-        is_purchased: false,
-        performance_metrics: {
-          total_return: 18.5,
-          sharpe_ratio: 1.8,
-          max_drawdown: -8.2,
-          win_rate: 0.68
-        },
-        tags: ['RSI', 'Momentum', 'Day Trading'],
-        status: 'approved',
-        created_at: '2024-01-15T10:00:00Z'
-      },
-      {
-        id: '2',
-        name: 'Mean Reversion Master',
-        description: 'Bollinger Bands mean reversion strategy',
-        price: 0,
-        creator_id: 'creator2',
-        creator_name: 'Sarah Analytics',
-        rating: 4.2,
-        review_count: 45,
-        download_count: 289,
-        is_purchased: false,
-        performance_metrics: {
-          total_return: 12.3,
-          sharpe_ratio: 1.4,
-          max_drawdown: -5.1,
-          win_rate: 0.72
-        },
-        tags: ['Bollinger Bands', 'Mean Reversion', 'Free'],
-        status: 'approved',
-        created_at: '2024-01-10T14:30:00Z'
-      }
-    ];
+    const { error } = await supabase
+      .from('creator_payouts')
+      .insert([{
+        creator_id: creatorId,
+        amount: payoutAmount,
+        currency: 'USD',
+        status: 'queued'
+      }])
+
+    if (error) throw error
+
+    await logAudit('marketplace_payout', creatorId, 'REQUEST', creatorId, {
+      amount: payoutAmount,
+      total_sales: totalAmount
+    })
   }
 }
-
-export const marketplaceService = new MarketplaceService();
