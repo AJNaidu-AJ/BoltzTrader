@@ -42,6 +42,7 @@ const StrategyLibrary = lazy(() => import("./pages/StrategyLibrary"));
 const RiskManagement = lazy(() => import("./pages/RiskManagement"));
 import BoltzTerminal from "./pages/BoltzTerminal";
 import AIAgent from "./pages/AIAgent";
+const Learning = lazy(() => import("./pages/Learning").then(m => ({ default: m.Learning })));
 
 // Fallback component for broken routes
 const ComingSoon = () => (
@@ -90,6 +91,7 @@ const AppContent = () => {
       <Route path="/marketplace" element={<ProtectedRoute><AppLayout><ComingSoon /></AppLayout></ProtectedRoute>} />
       <Route path="/global-markets" element={<ProtectedRoute><AppLayout><ComingSoon /></AppLayout></ProtectedRoute>} />
       <Route path="/ai-agent" element={<ProtectedRoute><AppLayout><AIAgent /></AppLayout></ProtectedRoute>} />
+      <Route path="/learning" element={<ProtectedRoute><AppLayout><Learning /></AppLayout></ProtectedRoute>} />
       <Route path="/enterprise" element={<ProtectedRoute><AppLayout><ComingSoon /></AppLayout></ProtectedRoute>} />
       <Route path="/watchlist" element={<ProtectedRoute><AppLayout><ComingSoon /></AppLayout></ProtectedRoute>} />
       <Route path="/notifications" element={<ProtectedRoute><AppLayout><Notifications /></AppLayout></ProtectedRoute>} />

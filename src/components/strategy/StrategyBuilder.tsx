@@ -173,9 +173,7 @@ export const StrategyBuilder = ({ initialStrategy }: StrategyBuilderProps) => {
     a.click();
   };
 
-  // Diagnostic logging to identify object-to-primitive error
-  console.log('Condition Groups:', conditionGroups);
-  console.log('Strategy:', strategy);
+
 
   return (
     <div className="space-y-6">

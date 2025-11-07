@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Terminal, Activity, Shield, TrendingUp, MessageSquare, GitBranch, Settings } from 'lucide-react';
+import { Terminal, Activity, Shield, TrendingUp, MessageSquare, GitBranch, Settings, Brain } from 'lucide-react';
 // import { useTerminalData } from '@/hooks/useTerminalData';
 
 // Simple fallback data
@@ -31,6 +31,7 @@ const useTerminalData = () => {
 };
 import { boltzCopilot } from '@/lib/openai';
 import LangGraphCanvas from '@/components/charts/LangGraphCanvas';
+import { LearningDashboard } from '@/components/learning/LearningDashboard';
 
 const BoltzTerminal: React.FC = () => {
   const [activePanel, setActivePanel] = useState('dashboard');
@@ -68,7 +69,8 @@ const BoltzTerminal: React.FC = () => {
               { id: 'orders', icon: Terminal, label: 'Orders' },
               { id: 'monitor', icon: Activity, label: 'Monitor' },
               { id: 'copilot', icon: MessageSquare, label: 'BoltzCopilot' },
-              { id: 'graph', icon: GitBranch, label: 'LangGraph' }
+              { id: 'graph', icon: GitBranch, label: 'LangGraph' },
+              { id: 'learning', icon: Brain, label: 'Learning' }
             ].map(({ id, icon: Icon, label }) => (
               <Button
                 key={id}
@@ -106,6 +108,9 @@ const BoltzTerminal: React.FC = () => {
             </TabsContent>
             <TabsContent value="graph">
               <LangGraphVisualizer />
+            </TabsContent>
+            <TabsContent value="learning">
+              <LearningPanel />
             </TabsContent>
           </Tabs>
         </div>
@@ -343,6 +348,17 @@ const LangGraphVisualizer = () => (
     </CardHeader>
     <CardContent className="h-full">
       <LangGraphCanvas />
+    </CardContent>
+  </Card>
+);
+
+const LearningPanel = () => (
+  <Card className="bg-black/50 border-green-500/30">
+    <CardHeader>
+      <CardTitle className="font-mono text-green-400">LEARNING SYSTEM</CardTitle>
+    </CardHeader>
+    <CardContent>
+      <LearningDashboard />
     </CardContent>
   </Card>
 );
