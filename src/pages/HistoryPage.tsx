@@ -236,18 +236,18 @@ export default function HistoryPage() {
           </svg>
         </div>
         
-        <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t">
-          <div className="text-center">
+        <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t bg-white">
+          <div className="text-center p-2">
             <div className="text-2xl font-bold text-green-600">+{((chartData[chartData.length - 1].value - chartData[0].value) / chartData[0].value * 100).toFixed(1)}%</div>
-            <div className="text-sm text-gray-500">Total Return</div>
+            <div className="text-sm text-gray-500 font-medium">Total Return</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold">{chartData.length * 28}</div>
-            <div className="text-sm text-gray-500">Total Signals</div>
+          <div className="text-center p-2">
+            <div className="text-2xl font-bold text-blue-600">{chartData.length * 28}</div>
+            <div className="text-sm text-gray-500 font-medium">Total Signals</div>
           </div>
-          <div className="text-center">
-            <div className="text-2xl font-bold">{(chartData.reduce((sum, d) => sum + d.accuracy, 0) / chartData.length).toFixed(1)}%</div>
-            <div className="text-sm text-gray-500">Avg Accuracy</div>
+          <div className="text-center p-2">
+            <div className="text-2xl font-bold text-purple-600">{(chartData.reduce((sum, d) => sum + d.accuracy, 0) / chartData.length).toFixed(1)}%</div>
+            <div className="text-sm text-gray-500 font-medium">Avg Accuracy</div>
           </div>
         </div>
       </div>
