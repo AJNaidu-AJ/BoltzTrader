@@ -88,62 +88,166 @@ export default function HistoryPage() {
     }
   ];
 
-  const CustomPerformanceChart = ({ data, className }: any) => (
+  // Generate chart data based on time range
+  const getChartData = (range: string) => {
+    const days = range === '7d' ? 7 : range === '30d' ? 30 : 90;
+    return Array.from({ length: days }, (_, i) => {
+      const date = new Date(Date.now() - (days - 1 - i) * 24 * 60 * 60 * 1000);
+      return {
+        date: date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+        value: 100 + (Math.random() - 0.3) * 50 + (i * 2),
+        accuracy: 75 + Math.random() * 20
+      };
+    });
+  };
+
+  const chartData = getChartData(timeRange);
+  const maxValue = Math.max(...chartData.map(d => d.value));
+  const minValue = Math.min(...chartData.map(d => d.value));
+  const range = maxValue - minValue;
+
+  const CustomPerformanceChart = ({ className }: any) => (
     <div className={className}>
-      <div className="w-full h-full bg-gradient-to-br from-green-50 to-blue-50 rounded-lg p-4 flex flex-col relative z-0">
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="font-semibold">Cumulative Performance</h3>
-          <div className="flex gap-2">
-            <Button size="sm" variant={timeRange === "7d" ? "default" : "outline"} onClick={() => setTimeRange("7d")}>7D</Button>
-            <Button size="sm" variant={timeRange === "30d" ? "default" : "outline"} onClick={() => setTimeRange("30d")}>30D</Button>
-            <Button size="sm" variant={timeRange === "90d" ? "default" : "outline"} onClick={() => setTimeRange("90d")}>90D</Button>
+      <div className="w-full h-full bg-white border rounded-lg p-4">
+        <div className="flex justify-between items-center mb-6">
+          <div>
+            <h3 className="font-semibold text-lg">Performance Chart</h3>
+            <p className="text-sm text-gray-500">Signal accuracy over time</p>
+          </div>
+          <div className="flex gap-1">
+            <Button 
+              size="sm" 
+              variant={timeRange === "7d" ? "default" : "outline"} 
+              onClick={() => setTimeRange("7d")}
+              className="px-3 py-1 text-xs"
+            >
+              7D
+            </Button>
+            <Button 
+              size="sm" 
+              variant={timeRange === "30d" ? "default" : "outline"} 
+              onClick={() => setTimeRange("30d")}
+              className="px-3 py-1 text-xs"
+            >
+              30D
+            </Button>
+            <Button 
+              size="sm" 
+              variant={timeRange === "90d" ? "default" : "outline"} 
+              onClick={() => setTimeRange("90d")}
+              className="px-3 py-1 text-xs"
+            >
+              90D
+            </Button>
           </div>
         </div>
-        <div className="flex-1 relative overflow-hidden">
-          <svg className="w-full h-full" viewBox="0 0 500 200" style={{maxHeight: '200px'}}>
+        
+        <div className="h-64 relative">
+          <svg className="w-full h-full" viewBox="0 0 800 300">
             <defs>
-              <linearGradient id="performanceGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-                <stop offset="0%" stopColor="#10b981" stopOpacity="0.3" />
-                <stop offset="100%" stopColor="#10b981" stopOpacity="0" />
+              <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+                <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2" />
+                <stop offset="100%" stopColor="#3b82f6" stopOpacity="0" />
               </linearGradient>
             </defs>
+            
             {/* Grid lines */}
-            {[0, 1, 2, 3, 4].map(i => (
-              <line key={i} x1="0" y1={i * 40} x2="500" y2={i * 40} stroke="#e5e7eb" strokeWidth="1" />
-            ))}
-            {/* Performance line */}
-            <path
-              d={`M 0 ${100 + Math.sin(0) * 30} ${data.slice(0, 25).map((_, i) => 
-                `L ${i * 20} ${100 + Math.sin(i * 0.2) * 25 + (i * 1.5)}`
-              ).join(' ')}`}
-              fill="url(#performanceGradient)"
-              stroke="#10b981"
-              strokeWidth="2"
-            />
-            {/* Data points */}
-            {data.slice(0, 25).map((_, i) => (
-              <circle
-                key={i}
-                cx={i * 20}
-                cy={100 + Math.sin(i * 0.2) * 25 + (i * 1.5)}
-                r="2"
-                fill="#10b981"
+            {[0, 1, 2, 3, 4, 5].map(i => (
+              <line 
+                key={`grid-${i}`} 
+                x1="60" 
+                y1={50 + i * 40} 
+                x2="750" 
+                y2={50 + i * 40} 
+                stroke="#f3f4f6" 
+                strokeWidth="1" 
               />
             ))}
+            
+            {/* Y-axis labels */}
+            {[0, 1, 2, 3, 4, 5].map(i => {
+              const value = maxValue - (i * range / 5);
+              return (
+                <text 
+                  key={`y-label-${i}`} 
+                  x="50" 
+                  y={55 + i * 40} 
+                  textAnchor="end" 
+                  className="text-xs fill-gray-500"
+                >
+                  {value.toFixed(0)}%
+                </text>
+              );
+            })}
+            
+            {/* Chart line and area */}
+            <path
+              d={`M 60 ${250 - ((chartData[0].value - minValue) / range) * 200} ${chartData.map((point, i) => {
+                const x = 60 + (i * (690 / (chartData.length - 1)));
+                const y = 250 - ((point.value - minValue) / range) * 200;
+                return `L ${x} ${y}`;
+              }).join(' ')}`}
+              fill="none"
+              stroke="#3b82f6"
+              strokeWidth="2"
+            />
+            
+            <path
+              d={`M 60 250 L 60 ${250 - ((chartData[0].value - minValue) / range) * 200} ${chartData.map((point, i) => {
+                const x = 60 + (i * (690 / (chartData.length - 1)));
+                const y = 250 - ((point.value - minValue) / range) * 200;
+                return `L ${x} ${y}`;
+              }).join(' ')} L 750 250 Z`}
+              fill="url(#areaGradient)"
+            />
+            
+            {/* Data points */}
+            {chartData.map((point, i) => {
+              const x = 60 + (i * (690 / (chartData.length - 1)));
+              const y = 250 - ((point.value - minValue) / range) * 200;
+              return (
+                <circle
+                  key={`point-${i}`}
+                  cx={x}
+                  cy={y}
+                  r="3"
+                  fill="#3b82f6"
+                  className="hover:r-4 cursor-pointer"
+                />
+              );
+            })}
+            
+            {/* X-axis labels */}
+            {chartData.filter((_, i) => i % Math.ceil(chartData.length / 6) === 0).map((point, i) => {
+              const originalIndex = i * Math.ceil(chartData.length / 6);
+              const x = 60 + (originalIndex * (690 / (chartData.length - 1)));
+              return (
+                <text 
+                  key={`x-label-${i}`} 
+                  x={x} 
+                  y="275" 
+                  textAnchor="middle" 
+                  className="text-xs fill-gray-500"
+                >
+                  {point.date}
+                </text>
+              );
+            })}
           </svg>
         </div>
-        <div className="grid grid-cols-3 gap-4 mt-4 text-center text-sm">
-          <div>
-            <div className="font-semibold text-green-600">+24.7%</div>
-            <div className="text-gray-500">Total Return</div>
+        
+        <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t">
+          <div className="text-center">
+            <div className="text-2xl font-bold text-green-600">+{((chartData[chartData.length - 1].value - chartData[0].value) / chartData[0].value * 100).toFixed(1)}%</div>
+            <div className="text-sm text-gray-500">Total Return</div>
           </div>
-          <div>
-            <div className="font-semibold">847</div>
-            <div className="text-gray-500">Total Signals</div>
+          <div className="text-center">
+            <div className="text-2xl font-bold">{chartData.length * 28}</div>
+            <div className="text-sm text-gray-500">Total Signals</div>
           </div>
-          <div>
-            <div className="font-semibold">12.3</div>
-            <div className="text-gray-500">Avg Days</div>
+          <div className="text-center">
+            <div className="text-2xl font-bold">{(chartData.reduce((sum, d) => sum + d.accuracy, 0) / chartData.length).toFixed(1)}%</div>
+            <div className="text-sm text-gray-500">Avg Accuracy</div>
           </div>
         </div>
       </div>
@@ -246,9 +350,7 @@ export default function HistoryPage() {
           <CardDescription>Signal accuracy and returns over time</CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="h-80 relative">
-            <CustomPerformanceChart data={performanceData} className="h-full" />
-          </div>
+          <CustomPerformanceChart className="h-96" />
         </CardContent>
       </Card>
 
