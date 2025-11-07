@@ -142,8 +142,8 @@ export default function HistoryPage() {
           </div>
         </div>
         
-        <div className="h-64 relative overflow-hidden">
-          <svg className="w-full h-64" viewBox="0 0 800 300" style={{maxHeight: '256px'}}>
+        <div className="h-48 relative overflow-hidden">
+          <svg className="w-full h-48" viewBox="0 0 800 240" style={{maxHeight: '192px'}}>
             <defs>
               <linearGradient id="areaGradient" x1="0%" y1="0%" x2="0%" y2="100%">
                 <stop offset="0%" stopColor="#3b82f6" stopOpacity="0.2" />
@@ -225,7 +225,7 @@ export default function HistoryPage() {
                 <text 
                   key={`x-label-${i}`} 
                   x={x} 
-                  y="275" 
+                  y="220" 
                   textAnchor="middle" 
                   className="text-xs fill-gray-500"
                 >
@@ -236,18 +236,18 @@ export default function HistoryPage() {
           </svg>
         </div>
         
-        <div className="grid grid-cols-3 gap-4 mt-6 pt-4 border-t bg-white">
-          <div className="text-center p-2">
-            <div className="text-2xl font-bold text-green-600">+{((chartData[chartData.length - 1].value - chartData[0].value) / chartData[0].value * 100).toFixed(1)}%</div>
-            <div className="text-sm text-gray-500 font-medium">Total Return</div>
+        <div className="grid grid-cols-3 gap-6 mt-4 pt-4 border-t bg-gray-50 rounded-lg p-4">
+          <div className="text-center">
+            <div className="text-3xl font-bold text-green-600">+{((chartData[chartData.length - 1].value - chartData[0].value) / chartData[0].value * 100).toFixed(1)}%</div>
+            <div className="text-sm text-gray-600 font-semibold mt-1">Total Return</div>
           </div>
-          <div className="text-center p-2">
-            <div className="text-2xl font-bold text-blue-600">{chartData.length * 28}</div>
-            <div className="text-sm text-gray-500 font-medium">Total Signals</div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-blue-600">{chartData.length * 28}</div>
+            <div className="text-sm text-gray-600 font-semibold mt-1">Total Signals</div>
           </div>
-          <div className="text-center p-2">
-            <div className="text-2xl font-bold text-purple-600">{(chartData.reduce((sum, d) => sum + d.accuracy, 0) / chartData.length).toFixed(1)}%</div>
-            <div className="text-sm text-gray-500 font-medium">Avg Accuracy</div>
+          <div className="text-center">
+            <div className="text-3xl font-bold text-purple-600">{(chartData.reduce((sum, d) => sum + d.accuracy, 0) / chartData.length).toFixed(1)}%</div>
+            <div className="text-sm text-gray-600 font-semibold mt-1">Avg Accuracy</div>
           </div>
         </div>
       </div>
