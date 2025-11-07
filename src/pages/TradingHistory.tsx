@@ -1,38 +1,59 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { brokerService, Trade } from '@/services/brokerApi';
-import { executionService } from '@/services/executionApi';
-import { PnLSummary } from '@/components/trading/PnLSummary';
-import { useAuth } from '@/contexts/AuthContext';
 import { TrendingUp, TrendingDown, Clock, CheckCircle, XCircle, Zap } from 'lucide-react';
 
+interface Trade {
+  id: string;
+  symbol: string;
+  side: 'buy' | 'sell';
+  quantity: number;
+  price: number;
+  status: string;
+  execution_latency_ms?: number;
+  broker: string;
+  is_paper_trade?: boolean;
+  created_at: string;
+  company_name?: string;
+}
+
 export default function TradingHistory() {
-  const { user } = useAuth();
-  const [trades, setTrades] = useState<Trade[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  useEffect(() => {
-    if (user) {
-      loadTrades();
+  const [trades] = useState<Trade[]>([
+    {
+      id: '1',
+      symbol: 'AAPL',
+      side: 'buy',
+      quantity: 100,
+      price: 178.45,
+      status: 'filled',
+      execution_latency_ms: 45.2,
+      broker: 'alpaca',
+      is_paper_trade: true,
+      created_at: new Date().toISOString(),
+      company_name: 'Apple Inc.'
+    },
+    {
+      id: '2',
+      symbol: 'MSFT',
+      side: 'sell',
+      quantity: 50,
+      price: 378.92,
+      status: 'filled',
+      execution_latency_ms: 32.1,
+      broker: 'zerodha',
+      is_paper_trade: false,
+      created_at: new Date(Date.now() - 86400000).toISOString(),
+      company_name: 'Microsoft Corporation'
     }
-  }, [user]);
+  ]);
+  const [loading] = useState(false);
+  const [error] = useState('');
 
-  const loadTrades = async () => {
-    if (!user) return;
-    
-    try {
-      setLoading(true);
-      const userTrades = await brokerService.getUserTrades(user.id);
-      setTrades(userTrades);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load trades');
-    } finally {
-      setLoading(false);
-    }
+  const loadTrades = () => {
+    // Mock refresh functionality
+    console.log('Refreshing trades...');
   };
 
   const getStatusIcon = (status: string) => {
@@ -102,12 +123,33 @@ export default function TradingHistory() {
 
       {/* PnL Summary */}
       <div className="grid gap-6 md:grid-cols-3">
-        <div className="md:col-span-1">
-          <PnLSummary />
-        </div>
-        <div className="md:col-span-2">
-          {/* Placeholder for additional metrics */}
-        </div>
+        <Card>
+          <CardHeader>
+            <CardTitle>Today's P&L</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-green-600">+$1,247.50</div>
+            <div className="text-sm text-muted-foreground">+2.34%</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Total Trades</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{trades.length}</div>
+            <div className="text-sm text-muted-foreground">This session</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Win Rate</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">84.5%</div>
+            <div className="text-sm text-muted-foreground">Success rate</div>
+          </CardContent>
+        </Card>
       </div>
 
       {trades.length === 0 ? (
@@ -144,9 +186,9 @@ export default function TradingHistory() {
                     <TableCell>
                       <div>
                         <div className="font-medium">{trade.symbol}</div>
-                        {trade.signals && (
+                        {trade.company_name && (
                           <div className="text-sm text-muted-foreground">
-                            {trade.signals.company_name}
+                            {trade.company_name}
                           </div>
                         )}
                       </div>
