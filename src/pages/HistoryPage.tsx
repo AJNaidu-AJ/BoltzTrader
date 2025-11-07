@@ -1,12 +1,8 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Download, Target } from "lucide-react";
-import { PriceChart } from "@/components/charts/PriceChart";
-import { generatePriceChartData } from "@/lib/mockData";
 
 export default function HistoryPage() {
-  const chartData = generatePriceChartData(30);
 
   return (
     <div className="container mx-auto p-6 space-y-6">
@@ -46,7 +42,9 @@ export default function HistoryPage() {
           <CardDescription>Signal accuracy over time</CardDescription>
         </CardHeader>
         <CardContent>
-          <PriceChart data={chartData} className="h-80" />
+          <div className="h-80 bg-gray-100 rounded-lg flex items-center justify-center">
+            <p className="text-gray-500">Performance chart will be displayed here</p>
+          </div>
         </CardContent>
       </Card>
     </div>
