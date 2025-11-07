@@ -11,6 +11,21 @@ export class ErrorBoundary extends Component<{ children: ReactNode }, State> {
 
   componentDidCatch(error: any, info: any) {
     console.error("ErrorBoundary caught:", { error, info });
+    
+    // Special handling for PerformanceChart errors
+    if (info?.componentStack?.includes('PerformanceChart')) {
+      console.error("PerformanceChart Render Error:", error);
+      // Log audit for performance chart failures
+      try {
+        // Import audit logger dynamically to avoid circular dependencies
+        import('@/utils/auditLogger').then(({ logAudit }) => {
+          logAudit('ui_error', 'performance_chart', 'RENDER_FAIL', 'system', { error: error.message, info });
+        });
+      } catch (auditError) {
+        console.error('Failed to log audit for chart error:', auditError);
+      }
+    }
+    
     try {
       const payload = {
         time: new Date().toISOString(),

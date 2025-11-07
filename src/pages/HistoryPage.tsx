@@ -5,19 +5,11 @@ import { Download, Target, TrendingUp, TrendingDown, Calendar, Filter } from "lu
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { PerformanceChart } from "@/components/performance/PerformanceChart";
 import { useState } from "react";
 
 export default function HistoryPage() {
-  const [timeRange, setTimeRange] = useState("30d");
   const [filterSymbol, setFilterSymbol] = useState("");
-
-  // Mock performance data
-  const performanceData = Array.from({ length: 30 }, (_, i) => ({
-    date: new Date(Date.now() - (29 - i) * 24 * 60 * 60 * 1000).toLocaleDateString(),
-    accuracy: 80 + Math.random() * 15,
-    returns: (Math.random() - 0.3) * 20,
-    signals: Math.floor(Math.random() * 50) + 10
-  }));
 
   // Mock signal history
   const signalHistory = [
@@ -350,9 +342,7 @@ export default function HistoryPage() {
           <CardDescription>Signal accuracy and returns over time</CardDescription>
         </CardHeader>
         <CardContent className="pb-8">
-          <div className="h-96 overflow-hidden">
-            <CustomPerformanceChart className="h-full" />
-          </div>
+          <PerformanceChart />
         </CardContent>
       </Card>
 
