@@ -1,0 +1,66 @@
+/* Global Markets Dashboard Styles */
+
+.market-card {
+  transition: all 0.3s ease;
+}
+
+.market-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+}
+
+.heatmap-cell {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.heatmap-cell:hover {
+  transform: scale(1.05);
+  z-index: 10;
+}
+
+.market-positive {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.market-negative {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.market-neutral {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
+}
+
+.loading-shimmer {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+.chart-container {
+  background: rgba(255, 255, 255, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.market-stats {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+
+.refresh-button {
+  transition: transform 0.2s ease;
+}
+
+.refresh-button:hover {
+  transform: rotate(180deg);
+}
