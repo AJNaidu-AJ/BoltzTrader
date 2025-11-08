@@ -1,0 +1,32 @@
+name: Journal CI
+on: 
+  push:
+    paths:
+      - 'services/journal/**'
+      - 'src/pages/journal/**'
+  pull_request:
+    paths:
+      - 'services/journal/**'
+      - 'src/pages/journal/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with: 
+          python-version: '3.11'
+      - name: Install Dependencies
+        run: |
+          cd services/journal
+          pip install -r requirements.txt
+      - name: Run Tests
+        run: |
+          cd services/journal
+          pytest -q
+      - name: Run Frontend Tests
+        run: |
+          npm install
+          npm test -- --testPathPattern=journal

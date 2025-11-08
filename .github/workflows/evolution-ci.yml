@@ -1,0 +1,36 @@
+name: Evolution CI
+on: 
+  push:
+    paths:
+      - 'services/evolution/**'
+      - 'src/pages/analytics/**'
+  pull_request:
+    paths:
+      - 'services/evolution/**'
+      - 'src/pages/analytics/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with: 
+          python-version: '3.11'
+      - name: Install Dependencies
+        run: |
+          cd services/evolution
+          pip install -r requirements.txt
+      - name: Run Tests
+        run: |
+          cd services/evolution
+          pytest -q --cov=. --cov-report=xml
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./services/evolution/coverage.xml
+      - name: Run Frontend Tests
+        run: |
+          npm install
+          npm test -- --testPathPattern=analytics

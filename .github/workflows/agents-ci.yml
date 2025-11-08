@@ -1,0 +1,36 @@
+name: Agents CI
+on: 
+  push:
+    paths:
+      - 'services/agents/**'
+      - 'src/pages/agents/**'
+  pull_request:
+    paths:
+      - 'services/agents/**'
+      - 'src/pages/agents/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with: 
+          python-version: '3.11'
+      - name: Install Dependencies
+        run: |
+          cd services/agents
+          pip install -r requirements.txt
+      - name: Run Tests
+        run: |
+          cd services/agents
+          pytest -q --cov=. --cov-report=xml
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./services/agents/coverage.xml
+      - name: Run Frontend Tests
+        run: |
+          npm install
+          npm test -- --testPathPattern=agents
