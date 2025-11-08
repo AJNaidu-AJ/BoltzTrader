@@ -1,0 +1,38 @@
+name: Orchestrator CI
+on:
+  push:
+    paths:
+      - 'services/orchestrator/**'
+  pull_request:
+    paths:
+      - 'services/orchestrator/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.11"
+      
+      - name: Install dependencies
+        working-directory: services/orchestrator
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Run tests
+        working-directory: services/orchestrator
+        run: |
+          python -m pytest tests/ -v --cov=. --cov-report=term-missing
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      
+      - name: Lint code
+        working-directory: services/orchestrator
+        run: |
+          pip install flake8
+          flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics
