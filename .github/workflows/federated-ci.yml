@@ -1,0 +1,30 @@
+name: Federated CI
+on: 
+  push:
+    paths:
+      - 'services/federated/**'
+  pull_request:
+    paths:
+      - 'services/federated/**'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with: 
+          python-version: '3.11'
+      - name: Install Dependencies
+        run: |
+          cd services/federated
+          pip install -r requirements.txt
+      - name: Run Tests
+        run: |
+          cd services/federated
+          pytest -q --cov=. --cov-report=xml
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./services/federated/coverage.xml
