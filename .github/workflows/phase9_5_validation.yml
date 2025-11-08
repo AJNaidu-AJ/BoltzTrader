@@ -1,0 +1,30 @@
+name: Phase 9.5 Validation Suite
+on:
+  push:
+    paths:
+      - 'src/services/tradeMonitor/**'
+      - 'tests/phase9_5/**'
+  pull_request:
+    paths:
+      - 'src/services/tradeMonitor/**'
+      - 'tests/phase9_5/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+      - name: Install Dependencies
+        run: npm ci
+      - name: Run Phase 9.5 Tests
+        run: npm test -- --runTestsByPath tests/phase9_5/
+      - name: Generate Coverage Report
+        run: npm run test:coverage -- tests/phase9_5/
+      - name: Upload Coverage
+        uses: codecov/codecov-action@v3
+        with:
+          file: ./coverage/lcov.info

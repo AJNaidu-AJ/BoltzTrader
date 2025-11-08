@@ -1,0 +1,7 @@
+{
+  "user_id": "test-user-001",
+  "holdings": [
+    { "symbol": "BTCUSDT", "size": 0.5, "pnl": -0.02, "exposure": 0.15, "volatility": 0.06, "ai_signal": {"confidence": 0.82} },
+    { "symbol": "AAPL", "size": 10, "pnl": 0.03, "exposure": 0.22, "volatility": 0.05, "ai_signal": {"confidence": 0.67} }
+  ]
+}

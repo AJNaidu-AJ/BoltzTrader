@@ -1,0 +1,7 @@
+{
+  "signals": [
+    { "symbol": "BTCUSDT", "confidence": 0.85, "direction": "LONG", "strength": 0.7 },
+    { "symbol": "ETHUSDT", "confidence": 0.92, "direction": "SHORT", "strength": 0.8 },
+    { "symbol": "AAPL", "confidence": 0.65, "direction": "HOLD", "strength": 0.5 }
+  ]
+}
