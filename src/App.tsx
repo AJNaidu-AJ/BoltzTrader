@@ -75,8 +75,10 @@ const AppContent = () => {
   return (
     <MobileOptimized>
       <Routes>
+      {/* Landing Page */}
+      <Route path="/" element={<Index />} />
+      
       {/* Main Terminal - Phase 4 */}
-      <Route path="/" element={<BoltzTerminal />} />
       <Route path="/terminal" element={<BoltzTerminal />} />
       
       {/* Auth Routes */}

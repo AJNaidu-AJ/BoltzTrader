@@ -11,7 +11,13 @@ export default defineConfig(({ mode }) => ({
     port: 8080,
     hmr: {
       overlay: true
-    }
+    },
+    allowedHosts: [
+      "localhost",
+      ".loca.lt",
+      ".ngrok.io",
+      ".ngrok-free.app"
+    ]
   },
   build: {
     sourcemap: true
