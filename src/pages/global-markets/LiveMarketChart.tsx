@@ -7,6 +7,7 @@ import { Play, Pause, Wifi, WifiOff } from 'lucide-react';
 import { startMarketStreaming, stopMarketStreaming, getStreamStatus } from '@/services/streaming/marketSocketService';
 import { applyAISignalOverlay } from '@/services/streaming/aiSignalOverlay';
 import { useMarketStore } from '@/store/marketStore';
+import { useAISignalExecutor } from '@/hooks/useAISignalExecutor';
 
 interface LiveMarketChartProps {
   symbol: string;
@@ -15,6 +16,7 @@ interface LiveMarketChartProps {
 
 export function LiveMarketChart({ symbol, title }: LiveMarketChartProps) {
   const { marketData, streamStatus } = useMarketStore();
+  const { executeAISignal, isExecuting } = useAISignalExecutor();
   const [isStreaming, setIsStreaming] = useState(false);
   
   const data = marketData[symbol];
@@ -85,6 +87,24 @@ export function LiveMarketChart({ symbol, title }: LiveMarketChartProps) {
               {isStreaming ? <Pause className="h-4 w-4" /> : <Play className="h-4 w-4" />}
               {isStreaming ? 'Stop' : 'Start'} Stream
             </Button>
+            
+            {aiSignal && (
+              <Button
+                onClick={() => executeAISignal({
+                  symbol,
+                  status: aiSignal.status as 'BUY' | 'SELL',
+                  amount: 100,
+                  confidence: aiSignal.confidence,
+                  timestamp: new Date(),
+                  reasoning: `AI Signal: ${aiSignal.status} with ${(aiSignal.confidence * 100).toFixed(1)}% confidence`
+                })}
+                disabled={isExecuting}
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white disabled:opacity-50"
+              >
+                {isExecuting ? 'Executing...' : 'Execute Trade'}
+              </Button>
+            )}
           </div>
         </div>
         
