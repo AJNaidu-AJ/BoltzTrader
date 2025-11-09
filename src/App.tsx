@@ -30,10 +30,10 @@ const Notifications = lazy(() => import("./pages/Notifications"));
 const Billing = lazy(() => import("./pages/Billing"));
 const Settings = lazy(() => import("./pages/Settings"));
 const Admin = lazy(() => import("./pages/Admin"));
-const Login = lazy(() => import("./pages/Login"));
-const Signup = lazy(() => import("./pages/Signup"));
-const Onboarding = lazy(() => import("./pages/Onboarding"));
-const PWAInstall = lazy(() => import("./pages/PWAInstall"));
+import Login from "./pages/Login";
+import Signup from "./pages/Signup";
+import Onboarding from "./pages/Onboarding";
+import PWAInstall from "./pages/PWAInstall";
 const TradingHistory = lazy(() => import("./pages/TradingHistory"));
 // Only load pages that definitely work
 const StrategyBuilder = lazy(() => import("./pages/StrategyBuilder"));
