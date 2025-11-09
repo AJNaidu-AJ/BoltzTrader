@@ -27,7 +27,7 @@ const useTerminalData = () => {
   useEffect(() => {
     const fetchRealData = async () => {
       try {
-        const zerodha = ZerodhaAdapter(import.meta.env.ZERODHA_API_KEY || '');
+        const zerodha = ZerodhaAdapter(import.meta.env.VITE_ZERODHA_API_KEY || '');
         
         // Fetch real positions and balance
         const [positions, balance] = await Promise.all([
