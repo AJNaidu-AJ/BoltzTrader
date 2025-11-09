@@ -272,8 +272,6 @@ const RiskPanel = () => (
   </Card>
 );
 
-import { StockSearch } from '@/components/terminal/StockSearch';
-
 const OrdersPanel = ({ liveOrders }: { liveOrders: any[] }) => (
   <div className="space-y-4">
     <Card className="bg-black/50 border-green-500/30">
