@@ -4,34 +4,44 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Terminal, Activity, Shield, TrendingUp, MessageSquare, GitBranch, Settings, Brain } from 'lucide-react';
-// import { useTerminalData } from '@/hooks/useTerminalData';
+import { useMarketStore } from '@/store/marketStore';
+import { stockSearchService } from '@/services/stockSearchService';
 
-// Simple fallback data
 const useTerminalData = () => {
-  return {
-    terminalState: {
-      systemStatus: 'online',
-      activeStrategies: 4,
-      riskLevel: 'MEDIUM',
-      dailyPnL: 2847,
-      portfolioValue: 250000,
-      uptime: 99.9,
-      latency: 45,
-      errorRate: 0.01
-    },
-    liveOrders: [],
-    strategies: [
-      { id: '1', name: 'Momentum', status: 'ACTIVE', confidence: 0.85 },
-      { id: '2', name: 'Mean Reversion', status: 'ACTIVE', confidence: 0.72 },
-      { id: '3', name: 'Breakout', status: 'ACTIVE', confidence: 0.68 },
-      { id: '4', name: 'Sentiment Fusion', status: 'ACTIVE', confidence: 0.91 }
-    ],
-    riskMetrics: {}
-  };
+  const [terminalState, setTerminalState] = useState({
+    systemStatus: 'online',
+    activeStrategies: 0,
+    riskLevel: 'LOW',
+    dailyPnL: 0,
+    portfolioValue: 100000,
+    uptime: 100,
+    latency: Math.floor(Math.random() * 100) + 20,
+    errorRate: 0
+  });
+  
+  const [liveOrders, setLiveOrders] = useState([]);
+  const [strategies, setStrategies] = useState([]);
+  
+  useEffect(() => {
+    // Simulate real-time updates
+    const interval = setInterval(() => {
+      setTerminalState(prev => ({
+        ...prev,
+        dailyPnL: prev.dailyPnL + (Math.random() - 0.5) * 100,
+        latency: Math.floor(Math.random() * 100) + 20,
+        activeStrategies: Math.floor(Math.random() * 6) + 1
+      }));
+    }, 2000);
+    
+    return () => clearInterval(interval);
+  }, []);
+  
+  return { terminalState, liveOrders, strategies, riskMetrics: {} };
 };
 import { boltzCopilot } from '@/lib/openai';
 import LangGraphCanvas from '@/components/charts/LangGraphCanvas';
 import { LearningDashboard } from '@/components/learning/LearningDashboard';
+import { StockSearch } from '@/components/terminal/StockSearch';
 
 const BoltzTerminal: React.FC = () => {
   const [activePanel, setActivePanel] = useState('dashboard');
@@ -231,31 +241,44 @@ const RiskPanel = () => (
   </Card>
 );
 
+import { StockSearch } from '@/components/terminal/StockSearch';
+
 const OrdersPanel = ({ liveOrders }: { liveOrders: any[] }) => (
-  <Card className="bg-black/50 border-green-500/30">
-    <CardHeader>
-      <CardTitle className="font-mono text-green-400">ORDER EXECUTION</CardTitle>
-    </CardHeader>
-    <CardContent>
-      <div className="space-y-3">
-        {liveOrders.length === 0 ? (
-          <div className="text-center text-green-400/70 font-mono">No recent orders</div>
-        ) : (
-          liveOrders.map((order, index) => (
-            <div key={order.id || index} className="flex items-center justify-between p-2 border border-green-500/30 rounded font-mono text-sm">
-              <span className="text-green-400">{order.symbol || 'N/A'}</span>
-              <span className={order.action === 'BUY' ? 'text-green-400' : 'text-red-400'}>{order.action || 'N/A'}</span>
-              <span className="text-green-400">{order.quantity || 0}</span>
-              <span className="text-green-400">${typeof order.price === 'number' ? order.price.toFixed(2) : '0.00'}</span>
-              <Badge variant={order.status === 'FILLED' ? 'default' : 'outline'} className="text-xs">
-                {order.status || 'PENDING'}
-              </Badge>
-            </div>
-          ))
-        )}
-      </div>
-    </CardContent>
-  </Card>
+  <div className="space-y-4">
+    <Card className="bg-black/50 border-green-500/30">
+      <CardHeader>
+        <CardTitle className="font-mono text-green-400">STOCK SEARCH</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <StockSearch />
+      </CardContent>
+    </Card>
+    
+    <Card className="bg-black/50 border-green-500/30">
+      <CardHeader>
+        <CardTitle className="font-mono text-green-400">ORDER EXECUTION</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-3">
+          {liveOrders.length === 0 ? (
+            <div className="text-center text-green-400/70 font-mono">No recent orders</div>
+          ) : (
+            liveOrders.map((order, index) => (
+              <div key={order.id || index} className="flex items-center justify-between p-2 border border-green-500/30 rounded font-mono text-sm">
+                <span className="text-green-400">{order.symbol || 'N/A'}</span>
+                <span className={order.action === 'BUY' ? 'text-green-400' : 'text-red-400'}>{order.action || 'N/A'}</span>
+                <span className="text-green-400">{order.quantity || 0}</span>
+                <span className="text-green-400">₹{typeof order.price === 'number' ? order.price.toFixed(2) : '0.00'}</span>
+                <Badge variant={order.status === 'FILLED' ? 'default' : 'outline'} className="text-xs">
+                  {order.status || 'PENDING'}
+                </Badge>
+              </div>
+            ))
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  </div>
 );
 
 const MonitorPanel = ({ terminalState }: { terminalState: any }) => (
